@@ -53,32 +53,13 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        // Intentar login normal primero
+        // Solo intentar login si el usuario está registrado
         if (Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
             RateLimiter::clear($this->throttleKey());
             return;
         }
 
-        // Si falla, verificar si el usuario existe
-        $user = User::where('email', $this->email)->first();
-
-        if (!$user) {
-            // Usuario no existe, crear uno nuevo con rol 'cliente'
-            $user = User::create([
-                'name' => explode('@', $this->email)[0], // Usar parte antes del @ como nombre
-                'email' => $this->email,
-                'password' => bcrypt($this->password),
-                'role' => 'cliente',
-                'email_verified_at' => now(),
-            ]);
-
-            // Loguear al usuario recién creado
-            Auth::login($user, $this->boolean('remember'));
-            RateLimiter::clear($this->throttleKey());
-            return;
-        }
-
-        // Usuario existe pero contraseña es incorrecta
+        // Si falla, lanzar error (sin crear usuario automáticamente)
         RateLimiter::hit($this->throttleKey());
 
         throw ValidationException::withMessages([

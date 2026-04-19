@@ -1,4 +1,4 @@
-<header class="app-header shadow-sm" style="background: #cac9ff; color: #fff; padding: 18px 0; position: sticky; top: 0; z-index: 1030;">
+<header class="app-header shadow-sm" style="background: #cac9ff; color: #fff; padding: 18px 0; position: relative; z-index: 1030;">
     <div class="container-fluid px-3 px-md-4">
         <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
             <div class="d-flex align-items-center gap-3">
