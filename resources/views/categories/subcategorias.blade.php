@@ -1,6 +1,6 @@
 @php
     use App\Models\Product;
-    $availableStores = Product::select('store')->distinct()->pluck('store')->filter()->values()->toArray();
+    $availableStores = Product::select('tienda')->distinct()->pluck('tienda')->filter()->values()->toArray();
     $defaultPromoImage = 'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=300&h=300&fit=crop&q=80';
 @endphp
 

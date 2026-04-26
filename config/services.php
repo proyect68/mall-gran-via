@@ -41,4 +41,10 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI'),
     ],
 
+    'fastapi' => [
+        'base_url' => env('FASTAPI_BASE_URL', 'http://127.0.0.1:8001'),
+        'timeout' => env('FASTAPI_TIMEOUT', 3),
+        'search_enabled' => env('FASTAPI_SEARCH_ENABLED', false),
+    ],
+
 ];

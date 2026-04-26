@@ -21,6 +21,10 @@
             color: #fff;
         }
 
+        .form-group-custom {
+            margin-bottom: 18px;
+        }
+
         .login-page {
             min-height: 100vh;
             display: flex;
@@ -201,12 +205,11 @@
             position: relative;
             display: flex;
             align-items: center;
-            margin-bottom: 18px;
         }
 
         .password-wrapper .form-control-custom {
             padding-right: 50px;
-            margin-bottom: 0;
+            margin-bottom: 18px;
         }
 
         .password-toggle {
@@ -250,12 +253,12 @@
         }
 
         .error-message {
-            background: rgba(255, 107, 107, 0.15);
-            border-left: 4px solid #ff6b6b;
+            background: rgb(255, 188, 188);
+            border-left: 4px solid #ce2525;
             padding: 14px 16px;
             margin-bottom: 18px;
             border-radius: 16px;
-            color: #d32f2f;
+            color: #b30000;
             font-size: 0.95rem;
         }
 
@@ -355,7 +358,7 @@
                     
                     <div class="register-title">Crear Cuenta</div>
                     <p class="subtitle">Regístrate para acceder a todas las promociones</p>
-
+                    <!--
                     @if ($errors->any())
                         <div class="error-message" style="list-style: none;">
                             @foreach ($errors->all() as $error)
@@ -363,51 +366,57 @@
                             @endforeach
                         </div>
                     @endif
-
+                    -->
                     <form method="POST" action="{{ route('register') }}">
                         @csrf
-
-                        <label for="name" style="display: block; margin-bottom: 8px; color: #3735af; font-weight: 600; font-size: 0.95rem;">Nombre:</label>
+                        <div class="form-group-custom">
+                        <label for="name" style="display: block; margin-bottom: 8px; color: #a8a7ff; font-weight: 600; font-size: 0.95rem;">Nombre:</label>
                         <input type="text" id="name" name="name" class="form-control-custom @error('name') error @enderror" placeholder="Nombre" value="{{ old('name') }}" required autofocus maxlength="50">
+                        </div>
                         @error('name')
                             <div class="error-message">{{ $message }}</div>
                         @enderror
-
-                        <label for="apellido_paterno" style="display: block; margin-bottom: 8px; color: #3735af; font-weight: 600; font-size: 0.95rem; margin-top: 16px;">Apellido Paterno:</label>
+                        <div class="form-group-custom">
+                        <label for="apellido_paterno" style="display: block; margin-bottom: 8px; color: #a8a7ff; font-weight: 600; font-size: 0.95rem;">Apellido Paterno:</label>
                         <input type="text" id="apellido_paterno" name="apellido_paterno" class="form-control-custom @error('apellido_paterno') error @enderror" placeholder="Apellido Paterno" value="{{ old('apellido_paterno') }}" required maxlength="50">
+                        </div>
                         @error('apellido_paterno')
                             <div class="error-message">{{ $message }}</div>
                         @enderror
-
-                        <label for="apellido_materno" style="display: block; margin-bottom: 8px; color: #3735af; font-weight: 600; font-size: 0.95rem; margin-top: 16px;">Apellido Materno:</label>
+                        <div class="form-group-custom">
+                        <label for="apellido_materno" style="display: block; margin-bottom: 8px; color: #a8a7ff; font-weight: 600; font-size: 0.95rem;">Apellido Materno:</label>
                         <input type="text" id="apellido_materno" name="apellido_materno" class="form-control-custom @error('apellido_materno') error @enderror" placeholder="Apellido Materno" value="{{ old('apellido_materno') }}" required maxlength="50">
+                        </div>
                         @error('apellido_materno')
                             <div class="error-message">{{ $message }}</div>
                         @enderror
-
-                        <label for="email" style="display: block; margin-bottom: 8px; color: #3735af; font-weight: 600; font-size: 0.95rem; margin-top: 16px;">Correo Electrónico:</label>
+                        <div class="form-group-custom">
+                        <label for="email" style="display: block; margin-bottom: 8px; color: #a8a7ff; font-weight: 600; font-size: 0.95rem;">Correo Electrónico:</label>
                         <input type="email" id="email" name="email" class="form-control-custom @error('email') error @enderror" placeholder="correo@gmail.com" value="{{ old('email') }}" required autocomplete="email" maxlength="255">
+                        </div>
                         @error('email')
                             <div class="error-message">{{ $message }}</div>
                         @enderror
-
-                        <label for="password" style="display: block; margin-bottom: 8px; color: #3735af; font-weight: 600; font-size: 0.95rem; margin-top: 16px;">Contraseña:</label>
+                        <div class="form-group-custom">
+                        <label for="password" style="display: block; margin-bottom: 8px; color: #a8a7ff; font-weight: 600; font-size: 0.95rem;">Contraseña:</label>
                         <div class="password-wrapper">
                             <input id="password" type="password" name="password" class="form-control-custom @error('password') error @enderror" placeholder="Contraseña (mín. 8 caracteres)" required autocomplete="new-password" maxlength="255">
                             <button type="button" class="password-toggle" id="togglePassword" aria-label="Mostrar contraseña">
                                 <i class="fa-regular fa-eye"></i>
                             </button>
                         </div>
+                        </div>
                         @error('password')
                             <div class="error-message">{{ $message }}</div>
                         @enderror
-
-                        <label for="password_confirmation" style="display: block; margin-bottom: 8px; color: #3735af; font-weight: 600; font-size: 0.95rem; margin-top: 16px;">Confirmar Contraseña:</label>
+                        <div class="form-group-custom">
+                        <label for="password_confirmation" style="display: block; margin-bottom: 8px; color: #a8a7ff; font-weight: 600; font-size: 0.95rem;">Confirmar Contraseña:</label>
                         <div class="password-wrapper">
                             <input id="password_confirmation" type="password" name="password_confirmation" class="form-control-custom @error('password_confirmation') error @enderror" placeholder="Confirmar contraseña" required autocomplete="new-password" maxlength="255">
                             <button type="button" class="password-toggle" id="togglePasswordConfirm" aria-label="Mostrar contraseña">
                                 <i class="fa-regular fa-eye"></i>
                             </button>
+                        </div>
                         </div>
                         @error('password_confirmation')
                             <div class="error-message">{{ $message }}</div>

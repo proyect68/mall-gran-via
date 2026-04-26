@@ -16,7 +16,7 @@ class ReclassifyZapatosTrendSeeder extends Seeder
     public function run(): void
     {
         // Obtener categoría "Moda y accesorios"
-        $modaCategory = Category::where('name', 'Moda y accesorios')->first();
+        $modaCategory = Category::where('nombre', 'Moda y accesorios')->first();
         
         if (!$modaCategory) {
             echo "Categoría 'Moda y accesorios' no encontrada.\n";
@@ -24,7 +24,7 @@ class ReclassifyZapatosTrendSeeder extends Seeder
         }
 
         // Buscar el producto "Zapatos Trend"
-        $zapatosTrend = Product::where('name', 'Zapatos Trend')->first();
+        $zapatosTrend = Product::where('nombre', 'Zapatos Trend')->first();
 
         if (!$zapatosTrend) {
             echo "Producto 'Zapatos Trend' no encontrado.\n";

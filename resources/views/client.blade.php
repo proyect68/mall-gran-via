@@ -20,19 +20,19 @@
     ];
 
     // Cargar todos los productos de la BD
-    $allProducts = Product::all()->toArray();
+    $allProducts = Product::all();
 
     // OFERTAS: Solo productos (NO servicios), agrupados por tienda
     $offers = [];
     $storeGrouped = [];
     foreach ($allProducts as $product) {
-        // Solo incluir productos, NO servicios (is_service debe ser 0 o false)
-        if ((int)$product['is_service'] === 1) continue;
+        // Solo incluir productos, NO servicios (es_servicio debe ser 0 o false)
+        if ((int)$product->es_servicio === 1) continue;
         
-        if (!isset($storeGrouped[$product['store']])) {
-            $storeGrouped[$product['store']] = [];
+        if (!isset($storeGrouped[$product->tienda])) {
+            $storeGrouped[$product->tienda] = [];
         }
-        $storeGrouped[$product['store']][] = $product;
+        $storeGrouped[$product->tienda][] = $product;
     }
 
     // Crear ofertas: Primera tienda genérica + ElectroMall como segunda
@@ -43,7 +43,7 @@
         // Filtrar solo productos con oferta para ElectroMall
         if ($storeName === 'ElectroMall') {
             $productsWithOffer = array_filter($products, function($p) {
-                return !empty($p['offer']);
+                return !empty($p->oferta);
             });
             if (empty($productsWithOffer)) continue; // Si ElectroMall no tiene ofertas, saltar
             $products = array_values($productsWithOffer);
@@ -57,40 +57,38 @@
         if ($storeCount >= 2) break;
     }
 
-    // PROMOS: Solo servicios (is_service=true) con ofertas, mínimo 4 servicios
-    $promosRaw = array_filter($allProducts, function($p) {
-        // Solo servicios (is_service debe ser 1)
-        if ((int)$p['is_service'] !== 1) return false;
+    // PROMOS: Solo servicios (es_servicio=true) con ofertas, mínimo 4 servicios
+    $promosRaw = $allProducts->filter(function($p) {
+        // Solo servicios (es_servicio debe ser 1)
+        if ((int)$p->es_servicio !== 1) return false;
         // Que tenga oferta
-        if (empty($p['offer'])) return false;
+        if (empty($p->oferta)) return false;
         return true;
     });
     
-    // Convertir a array indexado
-    $promosRaw = array_values($promosRaw);
-    
-    $promos = array_map(function($p) {
+    $promos = $promosRaw->take(4)->map(function($p) {
         return [
-            'title' => $p['name'],
-            'category' => $p['store'],
-            'description' => 'Promoción especial: ' . ($p['offer'] ?: 'Oferta disponible'),
-            'price' => $p['price'],
-            'old_price' => $p['old_price'] ?? null,
-            'badge' => $p['offer'] ?? 'Oferta',
-            'color' => $p['color'] ?? 'offer-red',
-            'image' => $p['image'] ?? 'https://via.placeholder.com/400x300/cccccc/666666?text=Promo',
-            'expires' => $p['expires'] ?? null,
+            'title' => $p->nombre,
+            'category' => $p->tienda,
+            'description' => 'Promoción especial: ' . ($p->oferta ?: 'Oferta disponible'),
+            'price' => $p->precio,
+            'old_price' => $p->precio_anterior ?? null,
+            'badge' => $p->oferta ?? 'Oferta',
+            'color' => $p->color ?? 'offer-red',
+            'image' => $p->imagen ?? 'https://via.placeholder.com/400x300/cccccc/666666?text=Promo',
+            'expires' => $p->expira ?? null,
         ];
-    }, array_slice($promosRaw, 0, 4));
+    })->values()->toArray();
 
     // Recomendaciones (solo productos, NO servicios)
-    $productsOnly = array_filter($allProducts, function($p) {
-        return !$p['is_service'];
+    $productsOnly = $allProducts->filter(function($p) {
+        return !$p->es_servicio;
     });
-    $recommendations = array_slice($productsOnly, 0, 14);
+    $recommendations = $productsOnly->take(14);
 
-    $availableStores = array_values(array_unique(array_map(fn($p) => $p['store'], $allProducts)));
+    $availableStores = $allProducts->pluck('tienda')->unique()->values();
 @endphp
+
 
 <!DOCTYPE html>
 <html lang="es">
@@ -260,6 +258,8 @@
     </style>
 </head>
 <body>
+    @include('components.app-header')
+    <!--
     <header class="app-header shadow-sm">
         <div class="container-fluid px-3 px-md-4">
             <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
@@ -279,7 +279,7 @@
                     <form id="mainSearchForm" action="{{ route('search') }}" method="GET" class="d-flex align-items-center gap-2">
                         <div style="position: relative; flex-grow: 1;">
                             <input type="text" name="q" class="search-box" placeholder="Buscar productos, tiendas o servicios..." aria-label="Buscar" />
-                            <!-- Hidden inputs para mantener filtros al hacer nueva búsqueda -->
+                            <-- Hidden inputs para mantener filtros al hacer nueva búsqueda ---
                             <input type="hidden" id="hiddenPriceMin" name="priceMin" />
                             <input type="hidden" id="hiddenPriceMax" name="priceMax" />
                             <input type="hidden" id="hiddenStoreFilter" name="storeFilter" />
@@ -334,14 +334,15 @@
             </div>
         </div>
     </header>
-
+-->
     <div class="offcanvas offcanvas-start menu-offcanvas" tabindex="-1" id="menuOffcanvas" aria-labelledby="menuOffcanvasLabel">
         <div class="offcanvas-header">
             <h5 class="offcanvas-title" id="menuOffcanvasLabel">Menú</h5>
             <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Cerrar"></button>
         </div>
         <div class="offcanvas-body">
-            <ul class="list-unstyled">
+            <ul class="list-unstyled">                
+                <li><a href="{{ route('profile.show') }}" class="d-block py-2"><img src="{{ asset('images/perfil_logo.png') }}" alt="" width="20" class="me-2" style="display: inline-block;">Mi perfil</a></li>
                 <li><a href="{{ route('categories.index') }}" class="d-block py-2"><img src="{{ asset('images/categoria_logo.png') }}" alt="" width="20" class="me-2" style="display: inline-block;">Todas las categorías</a></li>
                 <li><a href="{{ route('superofertas.index') }}" class="d-block py-2"><img src="{{ asset('images/superofertas_logo.png') }}" alt="" width="20" class="me-2" style="display: inline-block;">SuperOfertas</a></li>
                 <li><a href="{{ route('stores.index') }}" class="d-block py-2"><img src="{{ asset('images/tienda_logo.png') }}" alt="" width="20" class="me-2" style="display: inline-block;">Ver tiendas</a></li>
@@ -465,39 +466,40 @@
                                     <div class="offer-carousel" id="offer-carousel-{{ $index }}">
                                         @foreach ($offer['products'] as $product)
                                             @php
-                                                $productImage = $product['image'] ?? 'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=600&h=400&fit=crop&q=80';
+                                                $productImage = $product->imagen ?? 'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=600&h=400&fit=crop&q=80';
                                                 
                                                 // Calcular old_price si no existe pero hay descuento porcentual
-                                                $oldPrice = $product['old_price'];
-                                                if (empty($oldPrice) && strpos($product['offer'] ?? '', '%') !== false) {
-                                                    $discountPercent = (int)str_replace('%', '', $product['offer']);
-                                                    $currentPrice = (float)str_replace([' BS', '.', ','], '', $product['price']);
+                                                $oldPrice = $product->precio_anterior;
+                                                if (empty($oldPrice) && strpos($product->oferta ?? '', '%') !== false) {
+                                                    $discountPercent = (int)str_replace('%', '', $product->oferta);
+                                                    $currentPrice = (float)str_replace([' BS', '.', ','], '', $product->precio);
                                                     $originalPrice = round($currentPrice / (1 - $discountPercent / 100));
                                                     $oldPrice = number_format($originalPrice, 0, '', '.') . ' BS';
                                                 }
                                             @endphp
                                             <div class="offer-item">
+                                                <a href="{{ route('products.show', $product->id) }}" style="text-decoration:none; color:inherit;">
                                                 <div class="product-promo">
-                                                    <img src="{{ $productImage }}" alt="{{ $product['name'] }}">
-                                                    <div class="product-name">{{ $product['name'] }}</div>
+                                                    <img src="{{ $productImage }}" alt="{{ $product->nombre }}">
+                                                    <div class="product-name">{{ $product->nombre }}</div>
                                                     <div class="prices">
                                                         @php
-                                                            $priceDisplay = $product['price'];
+                                                            $priceDisplay = $product->precio;
                                                             if (strpos($priceDisplay, 'Bs') === false) {
                                                                 $priceDisplay .= ' Bs';
                                                             }
                                                             $discountedOldPrice = null;
-                                                            if (!empty($product['offer']) && strpos($product['offer'], '%') !== false) {
-                                                                $discountPercent = (int)str_replace('%', '', $product['offer']);
-                                                                $currentPrice = (float)str_replace([' Bs', 'Bs', '.', ','], '', $product['price']);
+                                                            if (!empty($product->oferta) && strpos($product->oferta, '%') !== false) {
+                                                                $discountPercent = (int)str_replace('%', '', $product->oferta);
+                                                                $currentPrice = (float)str_replace([' Bs', 'Bs', '.', ','], '', $product->precio);
                                                                 if ($currentPrice > 0 && $discountPercent > 0) {
                                                                     $originalPrice = round($currentPrice / (1 - $discountPercent / 100));
                                                                     $discountedOldPrice = number_format($originalPrice, 0, ',', '.') . ' Bs';
                                                                 }
                                                             }
                                                             $oldPrice = null;
-                                                            if (!empty($product['old_price'])) {
-                                                                $oldPrice = $product['old_price'];
+                                                            if (!empty($product->precio_anterior)) {
+                                                                $oldPrice = $product->precio_anterior;
                                                                 if (strpos($oldPrice, 'Bs') === false && is_numeric(str_replace(['.', ','], '', $oldPrice))) {
                                                                     $oldPrice .= ' Bs';
                                                                 }
@@ -510,8 +512,8 @@
                                                             <del>{{ $oldPrice }}</del>
                                                         @endif
                                                     </div>
-                                                    <div class="expires">Vence: {{ $product['expires'] ?? '31/04/2026' }}</div>
-                                                    <span class="badge-label {{ $product['color'] ?? 'offer-red' }}">{{ $product['offer'] ?? '-' }}</span>
+                                                    <div class="expires">Vence: {{ $product->expira ?? '31/04/2026' }}</div>
+                                                    <span class="badge-label {{ $product->color ?? 'offer-red' }}">{{ $product->oferta ?? '-' }}</span>
                                                 </div>
                                             </div>
                                         @endforeach
@@ -577,19 +579,19 @@
                     @foreach ($recommendations as $item)
                         <div class="recommendation-item">
                             <article class="recommendation-card">
-                                <img src="{{ $item['image'] }}" alt="{{ $item['name'] }}" class="w-100 rounded mb-3">
-                                <div class="title" style="font-size: 0.95rem;">{{ $item['name'] }}</div>
-                                <div class="store-name">{{ $item['store'] }}</div>
+                                <img src="{{ $item->imagen }}" alt="{{ $item->nombre }}" class="w-100 rounded mb-3">
+                                <div class="title" style="font-size: 0.95rem;">{{ $item->nombre }}</div>
+                                <div class="store-name">{{ $item->tienda }}</div>
                                 <div class="price" style="margin-bottom: 10px;">
                                     @php
-                                        $clientItemPrice = $item['price'];
+                                        $clientItemPrice = $item->precio;
                                         if (strpos($clientItemPrice, 'Bs') === false) {
                                             $clientItemPrice .= ' Bs';
                                         }
-                                        $oldPrice = $item['old_price'];
-                                        if (empty($oldPrice) && strpos($item['offer'] ?? '', '%') !== false) {
-                                            $discountPercent = (int)str_replace('%', '', $item['offer']);
-                                            $currentPrice = (float)str_replace([' Bs', 'Bs', '.', ','], '', $item['price']);
+                                        $oldPrice = $item->precio_anterior;
+                                        if (empty($oldPrice) && strpos($item->oferta ?? '', '%') !== false) {
+                                            $discountPercent = (int)str_replace('%', '', $item->oferta);
+                                            $currentPrice = (float)str_replace([' Bs', 'Bs', '.', ','], '', $item->precio);
                                             if ($currentPrice > 0 && $discountPercent > 0) {
                                                 $originalPrice = round($currentPrice / (1 - $discountPercent / 100));
                                                 $oldPrice = number_format($originalPrice, 0, ',', '.') . ' Bs';
@@ -601,8 +603,8 @@
                                         <del style="color:#8f92b7; margin-left:8px;">{{ $oldPrice }}</del>
                                     @endif
                                 </div>
-                                @if ($item['offer'])
-                                    <span class="badge-label {{ $item['color'] }}" style="font-size: 0.75rem;">{{ $item['offer'] }}</span>
+                                @if ($item->oferta)
+                                    <span class="badge-label {{ $item->color }}" style="font-size: 0.75rem;">{{ $item->oferta }}</span>
                                 @endif
                             </article>
                         </div>

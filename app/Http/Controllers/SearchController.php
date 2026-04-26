@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Services\FastApi\SearchApiClient;
 use Illuminate\Http\Request;
+use Throwable;
 
 class SearchController extends Controller
 {
@@ -12,17 +14,43 @@ class SearchController extends Controller
      */
     public function search(Request $request)
     {
-        $query = $request->input('q');
-        $page = $request->input('page', 1);
-        $priceMin = $request->input('priceMin');
-        $priceMax = $request->input('priceMax');
-        $storeFilter = $request->input('storeFilter');
-        $offerOnly = $request->input('offerOnly');
+        $params = [
+            'q' => $request->input('q'),
+            'page' => (int) $request->input('page', 1),
+            'priceMin' => $request->input('priceMin'),
+            'priceMax' => $request->input('priceMax'),
+            'storeFilter' => $request->input('storeFilter'),
+            'offerOnly' => $request->input('offerOnly'),
+        ];
+
+        $remoteResult = $this->searchUsingFastApi($params);
+
+        if ($remoteResult !== null) {
+            return view('search.results', $remoteResult);
+        }
+
+        $query = $params['q'];
+        $page = $params['page'];
+        $priceMin = $params['priceMin'];
+        $priceMax = $params['priceMax'];
+        $storeFilter = $params['storeFilter'];
+        $offerOnly = $params['offerOnly'];
         
         $perPage = 28; // 4 filas × 7 columnas
         
-        // Obtener todos los productos de la base de datos
-        $allProducts = Product::all()->toArray();
+        // Iniciar query builder en lugar de traer todo a memoria
+        $productQuery = Product::query();
+
+        // Aplicar filtros básicos en la base de datos (más profesional y rápido)
+        if ($storeFilter) {
+            $productQuery->where('tienda', 'ilike', "%{$storeFilter}%");
+        }
+
+        if ($offerOnly === 'on' || $offerOnly === '1' || $offerOnly === true) {
+            $productQuery->whereNotNull('oferta')->where('oferta', '!=', '');
+        }
+
+        $allProducts = $productQuery->get()->toArray();
         
         // Si no hay query válida, mostrar todos los productos
         if (!$query || strlen($query) < 2) {
@@ -156,7 +184,74 @@ class SearchController extends Controller
             'storeFilter' => $storeFilter,
             'offerOnly' => $offerOnly,
             'isShowingAll' => !$query || strlen($query) < 2,
+            'searchSource' => 'laravel',
         ]);
+    }
+
+    private function searchUsingFastApi(array $params): ?array
+    {
+        if (! config('services.fastapi.search_enabled')) {
+            return null;
+        }
+
+        try {
+            $payload = app(SearchApiClient::class)->search($params);
+
+            return [
+                'query' => $payload['query'] ?? $params['q'],
+                'products' => $this->normalizeProducts($payload['productos'] ?? []),
+                'services' => $this->normalizeProducts($payload['servicios'] ?? []),
+                'relatedStores' => $this->normalizeStores($payload['tiendas_relacionadas'] ?? []),
+                'currentPage' => $payload['pagina_actual'] ?? ($params['page'] ?? 1),
+                'totalPages' => $payload['total_paginas_productos'] ?? 1,
+                'totalPages_services' => $payload['total_paginas_servicios'] ?? 1,
+                'totalProducts' => $payload['total_productos'] ?? 0,
+                'totalServices' => $payload['total_servicios'] ?? 0,
+                'priceMin' => $payload['precio_minimo'] ?? $params['priceMin'],
+                'priceMax' => $payload['precio_maximo'] ?? $params['priceMax'],
+                'storeFilter' => $payload['tienda'] ?? $params['storeFilter'],
+                'offerOnly' => ($payload['solo_ofertas'] ?? false) ? 'on' : null,
+                'isShowingAll' => $payload['mostrando_todo'] ?? false,
+                'searchSource' => 'fastapi',
+            ];
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return null;
+        }
+    }
+
+    private function normalizeProducts(array $items): array
+    {
+        return array_map(function (array $item) {
+            return [
+                'id' => $item['id'] ?? null,
+                'name' => $item['nombre'] ?? null,
+                'store' => $item['tienda'] ?? null,
+                'price' => $item['precio'] ?? null,
+                'old_price' => $item['precio_anterior'] ?? null,
+                'offer' => $item['oferta'] ?? null,
+                'color' => $item['color'] ?? null,
+                'image' => $item['imagen'] ?? null,
+                'expires' => $item['expira'] ?? null,
+                'is_service' => $item['es_servicio'] ?? false,
+                'category_id' => $item['categoria_id'] ?? null,
+                'subcategoria_id' => $item['subcategoria_id'] ?? null,
+            ];
+        }, $items);
+    }
+
+    private function normalizeStores(array $stores): array
+    {
+        return array_map(function (array $store) {
+            return [
+                'name' => $store['nombre'] ?? null,
+                'image' => $store['imagen'] ?? null,
+                'relatedProductsCount' => $store['cantidad_productos_relacionados'] ?? 0,
+                'products' => $this->normalizeProducts($store['productos'] ?? []),
+                'status' => $store['estado'] ?? 'Abierto',
+            ];
+        }, $stores);
     }
     
     /**
@@ -170,7 +265,7 @@ class SearchController extends Controller
         $queryWords = preg_split('/\s+/', $queryLower, -1, PREG_SPLIT_NO_EMPTY);
         
         // Detectar si el usuario está buscando tienda + producto
-        $availableStores = collect($products)->pluck('store')->unique()->toArray();
+        $availableStores = collect($products)->pluck('tienda')->filter()->unique()->toArray();
         $mentionedStore = null;
         $productKeywords = $queryWords;
         

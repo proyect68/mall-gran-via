@@ -1,0 +1,36 @@
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.api.router import api_router
+from app.core.config import settings
+
+
+app = FastAPI(
+    title=settings.app_name,
+    version=settings.app_version,
+    openapi_url=f"{settings.api_prefix}/openapi.json",
+)
+
+# CORS Configuration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:8000",
+        "http://localhost:8001",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(api_router, prefix=settings.api_prefix)
+
+
+@app.get("/", tags=["root"])
+def root() -> dict[str, str]:
+    return {
+        "service": settings.app_name,
+        "version": settings.app_version,
+        "status": "ok",
+    }

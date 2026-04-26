@@ -139,13 +139,13 @@ class RegisteredUserController extends Controller
             'apellido_materno' => $request->apellido_materno,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => 'user',
+            'role' => 'cliente',
         ]);
 
         event(new Registered($user));
 
         Auth::login($user);
 
-        return redirect(route('client.home', absolute: false));
+        return redirect(route('dashboard', absolute: false));
     }
 }

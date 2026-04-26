@@ -30,6 +30,7 @@ class User extends Authenticatable
         'apellido_materno',
         'email',
         'password',
+        'rol_id',
         'role',
         'email_verified_at',
     ];
@@ -55,5 +56,36 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function rol()
+    {
+        return $this->belongsTo(Rol::class, 'rol_id');
+    }
+
+    public function getRoleAttribute()
+    {
+        if ($this->relationLoaded('rol')) {
+            return $this->rol?->nombre;
+        }
+
+        return $this->rol()->value('nombre');
+    }
+
+    public function setRoleAttribute($value): void
+    {
+        $valorNormalizado = match (strtolower((string) $value)) {
+            'user', 'cliente' => 'cliente',
+            'comerciante' => 'comerciante',
+            'admin', 'administrador' => 'administrador',
+            'super-admin', 'super_admin' => 'super_admin',
+            default => 'cliente',
+        };
+
+        $rolId = Rol::query()->where('nombre', $valorNormalizado)->value('id');
+
+        if ($rolId !== null) {
+            $this->attributes['rol_id'] = $rolId;
+        }
     }
 }

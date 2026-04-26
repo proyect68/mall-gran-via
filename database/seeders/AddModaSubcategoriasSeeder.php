@@ -26,7 +26,7 @@ class AddModaSubcategoriasSeeder extends Seeder
             'Joyería'
         ];
 
-        $category = Category::where('name', 'Moda y accesorios')->first();
+        $category = Category::where('nombre', 'Moda y accesorios')->first();
         
         if ($category) {
             foreach ($subcategorias as $subcategoria) {

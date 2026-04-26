@@ -109,6 +109,8 @@
     </style>
 </head>
 <body>
+    @include('components.app-header')
+    <!--
     <header class="app-header shadow-sm">
         <div class="container-fluid px-3 px-md-4">
             <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
@@ -182,7 +184,7 @@
             </div>
         </div>
     </header>
-
+-->
     <div class="offcanvas offcanvas-start menu-offcanvas" tabindex="-1" id="menuOffcanvas" aria-labelledby="menuOffcanvasLabel">
         <div class="offcanvas-header">
             <h5 class="offcanvas-title" id="menuOffcanvasLabel">Menú</h5>
@@ -190,6 +192,7 @@
         </div>
         <div class="offcanvas-body">
             <ul class="list-unstyled">
+                <li><a href="{{ route('profile.show') }}" class="d-block py-2"><img src="{{ asset('images/perfil_logo.png') }}" alt="" width="20" class="me-2" style="display: inline-block;">Mi perfil</a></li>
                 <li><a href="{{ route('dashboard') }}" class="d-block py-2"><img src="{{ asset('images/home_logo.png') }}" alt="" width="20" class="me-2" style="display: inline-block;">Volver al dashboard</a></li>
                 <li><a href="{{ route('dashboard') }}" class="d-block py-2"><img src="{{ asset('images/superofertas_logo.png') }}" alt="" width="20" class="me-2" style="display: inline-block;">SuperOfertas</a></li>
                 <li><a href="{{ route('dashboard') }}" class="d-block py-2"><img src="{{ asset('images/tienda_logo.png') }}" alt="" width="20" class="me-2" style="display: inline-block;">Ver tiendas</a></li>

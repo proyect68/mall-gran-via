@@ -58,16 +58,16 @@ if %errorlevel% neq 0 (
 
 echo.
 echo 6. Probando configuracion de Laravel...
-cd c:\laragon\www\webpersonal
+cd c:\docker-projects\webpersonal
 php artisan migrate:status >nul 2>&1
 if %errorlevel% neq 0 (
     echo ❌ Error en migraciones de Laravel
-    echo    Ejecutando migraciones...
-    php artisan migrate:fresh --force >nul 2>&1
+    echo    Intentando ejecutar migraciones pendientes (sin borrar datos)...
+    php artisan migrate --force >nul 2>&1
     if %errorlevel% neq 0 (
         echo ❌ Error al ejecutar migraciones
     ) else (
-        echo ✅ Migraciones ejecutadas correctamente
+        echo ✅ Migraciones actualizadas correctamente
     )
 ) else (
     echo ✅ Migraciones de Laravel OK

@@ -1,14 +1,8 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>SuperOfertas - Mall Gran Vía</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+@extends('layouts.app-authenticated')
+
+@section('title', 'SuperOfertas - Mall Gran Vía')
+
+@section('styles')
     <style>
         html { scrollbar-gutter: stable; overflow-y: scroll; }
         html, body { width: 100%; }
@@ -147,12 +141,9 @@
             #comidas-superofertas .row { grid-template-columns: 1fr !important; }
         }
     </style>
-</head>
-<body>
-    @include('components.app-header')
-    @include('components.menu-offcanvas')
-    @include('components.filter-offcanvas')
+@endsection
 
+@section('content')
     <main class="container-fluid px-3 px-md-4 pt-4" style="padding-bottom: 40px;">
         <!-- Carrusel Principal -->
         <section class="hero-carousel mb-5" style="position: relative;">
@@ -390,10 +381,11 @@
         </section>
     </main>
 
-    @include('components.app-footer')
+@endsection
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
+@section('scripts')
+
+<script>
         // Interceptor para offcanvas
         const body = document.body;
         const offcanvasEl = document.getElementById('mainMenu');
@@ -421,14 +413,15 @@
         }
 
         // Manejo de botones de scroll para carrusel de ofertas
-        document.querySelectorAll('.offer-scroll-btn').forEach(button => {
-            button.addEventListener('click', () => {
-                const direction = button.getAttribute('data-direction');
-                const carousel = button.closest('.offer-products-wrapper').querySelector('.offer-carousel');
-                const scrollAmount = carousel.clientWidth * 0.7;
-                carousel.scrollBy({ left: direction === 'next' ? scrollAmount : -scrollAmount, behavior: 'smooth' });
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.offer-scroll-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const direction = button.getAttribute('data-direction');
+                    const carousel = button.closest('.offer-products-wrapper').querySelector('.offer-carousel');
+                    const scrollAmount = carousel.clientWidth * 0.7;
+                    carousel.scrollBy({ left: direction === 'next' ? scrollAmount : -scrollAmount, behavior: 'smooth' });
+                });
             });
         });
     </script>
-</body>
-</html>
+@endsection

@@ -19,14 +19,14 @@ class CategoriesController extends Controller
             $products = $category->products();
             $categoryStats[$category->id] = [
                 'products_count' => $products->count(),
-                'stores_count' => $products->distinct('store')->count('store'),
+                'stores_count' => $products->distinct('tienda')->count('tienda'),
             ];
         }
         
         return view('categories.index', [
             'categories' => $categories,
             'categoryStats' => $categoryStats,
-            'availableStores' => Product::select('store')->distinct()->pluck('store')->filter()->values()->toArray(),
+            'availableStores' => Product::select('tienda')->distinct()->pluck('tienda')->filter()->values()->toArray(),
         ]);
     }
 
@@ -41,7 +41,7 @@ class CategoriesController extends Controller
         
         foreach ($subcategorias as $subcategoria) {
             $subcategoriaProductCounts[$subcategoria->id] = $subcategoria->productos()->count();
-            $subcategoriaStoreCounts[$subcategoria->id] = $subcategoria->productos()->distinct('store')->count('store');
+            $subcategoriaStoreCounts[$subcategoria->id] = $subcategoria->productos()->distinct('tienda')->count('tienda');
         }
         
         // Obtener productos de la categoría
@@ -53,7 +53,7 @@ class CategoriesController extends Controller
             'subcategoriaProductCounts' => $subcategoriaProductCounts,
             'subcategoriaStoreCounts' => $subcategoriaStoreCounts,
             'products' => $products,
-            'availableStores' => Product::select('store')->distinct()->pluck('store')->filter()->values()->toArray(),
+            'availableStores' => Product::select('tienda')->distinct()->pluck('tienda')->filter()->values()->toArray(),
         ]);
     }
 
@@ -64,11 +64,11 @@ class CategoriesController extends Controller
         
         // Obtener tiendas relacionadas a la subcategoría
         $relatedStores = $subcategoria->productos()
-            ->select('store')
+            ->select('tienda')
             ->distinct()
             ->get()
             ->map(function ($product) use ($subcategoria) {
-                $storeProducts = $subcategoria->productos()->where('store', $product->store)->count();
+                $storeProducts = $subcategoria->productos()->where('tienda', $product->store)->count();
                 return [
                     'name' => $product->store,
                     'relatedProductsCount' => $storeProducts,
@@ -85,7 +85,7 @@ class CategoriesController extends Controller
             'category' => $category,
             'relatedStores' => $relatedStores,
             'products' => $products,
-            'availableStores' => Product::select('store')->distinct()->pluck('store')->filter()->values()->toArray(),
+            'availableStores' => Product::select('tienda')->distinct()->pluck('tienda')->filter()->values()->toArray(),
         ]);
     }
 }

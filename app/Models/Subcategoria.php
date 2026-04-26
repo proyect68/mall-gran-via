@@ -25,6 +25,6 @@ class Subcategoria extends Model
 
     public function getStoresCountAttribute()
     {
-        return $this->productos()->select('store')->distinct()->count();
+        return $this->productos()->select('tienda')->distinct()->count();
     }
 }

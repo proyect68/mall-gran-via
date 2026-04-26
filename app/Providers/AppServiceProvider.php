@@ -24,7 +24,7 @@ class AppServiceProvider extends ServiceProvider
         // Compartir datos disponibles con todas las vistas
         try {
             View::share([
-                'availableStores' => Product::select('store')->distinct()->pluck('store')->filter()->values()->toArray(),
+                'availableStores' => Product::select('tienda')->distinct()->pluck('tienda')->filter()->values()->toArray(),
             ]);
         } catch (\Exception $e) {
             // Si la BD no está disponible, compartir array vacío

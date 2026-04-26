@@ -16,7 +16,7 @@ class ClassifyModaProductsSeeder extends Seeder
     public function run(): void
     {
         // Obtener categoría "Moda y accesorios"
-        $modaCategory = Category::where('name', 'Moda y accesorios')->first();
+        $modaCategory = Category::where('nombre', 'Moda y accesorios')->first();
         
         if (!$modaCategory) {
             echo "Categoría 'Moda y accesorios' no encontrada.\n";
@@ -37,7 +37,7 @@ class ClassifyModaProductsSeeder extends Seeder
         ];
 
         // Obtener todos los productos de la categoría Moda y accesorios
-        $products = Product::where('category_id', $modaCategory->id)->get();
+        $products = Product::where('categoria_id', $modaCategory->id)->get();
 
         foreach ($products as $product) {
             $productName = strtolower($product->name);

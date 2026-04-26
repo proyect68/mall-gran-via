@@ -20,6 +20,13 @@
             background: #e9edf8;
             color: #fff;
         }
+        .form-label-custom {
+            display: block;
+            margin-bottom: 12px;
+            color: #a8a7ff; /* mismo color del register */
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
 
         .login-page {
             min-height: 100vh;
@@ -258,12 +265,12 @@
         }
 
         .error-message {
-            background: rgba(255, 107, 107, 0.15);
-            border-left: 4px solid #ff6b6b;
+            background: rgb(255, 188, 188);
+            border-left: 4px solid #ce2525;
             padding: 14px 16px;
             margin-bottom: 18px;
             border-radius: 16px;
-            color: #d32f2f;
+            color: #b30000;
             font-size: 0.95rem;
         }
 
@@ -345,21 +352,41 @@
 
                     <form method="POST" action="{{ route('login') }}">
                         @csrf
+                        <div class="mb-3">
+                        <label for="email" class="form-label-custom">Correo electrónico</label>
                         <input type="email" name="email" class="form-control-custom @error('email') error @enderror" placeholder="usuario@gmail.com" value="{{ old('email') }}" required autofocus autocomplete="username" maxlength="255">
+                        </div>
+                        <!--
                         @error('email')
                             <div class="error-message">{{ $message }}</div>
                         @enderror
+                        -->
+                        <div class="mb-3">
+                        <label for="password" class="form-label-custom">Contraseña</label>
 
+                        <div class="password-wrapper">
+                            <input id="password" type="password" name="password"
+                                class="form-control-custom @error('password') error @enderror"
+                                placeholder="Ingresar contraseña" required autocomplete="current-password" maxlength="255">
+
+                            <button type="button" class="password-toggle" id="togglePassword">
+                                <i class="fa-regular fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                        <!--
                         <div class="password-wrapper" style="margin-bottom: 18px;">
+                            <label for="password">Ingresar contraseña</label>
                             <input id="password" type="password" name="password" class="form-control-custom @error('password') error @enderror" placeholder="Ingresar contraseña" required autocomplete="current-password" maxlength="255">
                             <button type="button" class="password-toggle" id="togglePassword" aria-label="Mostrar contraseña">
                                 <i class="fa-regular fa-eye"></i>
                             </button>
                         </div>
+                        
                         @error('password')
                             <div class="error-message">{{ $message }}</div>
                         @enderror
-
+                        -->
                         <button type="submit" class="btn-google" style="margin-top: 6px;">Ingresar</button>
                     </form>
 

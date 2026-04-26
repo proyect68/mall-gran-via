@@ -105,7 +105,7 @@ class AssignmentController extends Controller
                 continue;
             }
 
-            $category = Category::find($product->category_id);
+            $category = Category::find($product->categoria_id);
             if (!$category) {
                 continue;
             }
@@ -113,8 +113,8 @@ class AssignmentController extends Controller
             $productName = strtolower($product->name);
             $subcategory = null;
 
-            if (isset($mappings[$category->name])) {
-                foreach ($mappings[$category->name] as $keyword => $subcategoryName) {
+            if (isset($mappings[$category->nombre])) {
+                foreach ($mappings[$category->nombre] as $keyword => $subcategoryName) {
                     if (strpos($productName, strtolower($keyword)) !== false) {
                         $subcategory = Subcategoria::where('nombre', $subcategoryName)
                             ->where('categoria_id', $category->id)
@@ -137,7 +137,7 @@ class AssignmentController extends Controller
                 $results[] = [
                     'product' => $product->name,
                     'subcategory' => $subcategory->nombre,
-                    'category' => $category->name
+                    'category' => $category->nombre
                 ];
             }
         }

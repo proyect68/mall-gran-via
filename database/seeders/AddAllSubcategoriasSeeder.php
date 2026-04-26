@@ -82,7 +82,7 @@ class AddAllSubcategoriasSeeder extends Seeder
         ];
 
         foreach ($subcategoriesByCategory as $categoryName => $subcategories) {
-            $category = Category::where('name', $categoryName)->first();
+            $category = Category::where('nombre', $categoryName)->first();
             
             if ($category) {
                 foreach ($subcategories as $subcategoria) {

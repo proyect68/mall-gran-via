@@ -188,7 +188,7 @@ class AssignProductsToSubcategories extends Command
                 continue;
             }
 
-            $category = Category::find($product->category_id);
+            $category = Category::find($product->categoria_id);
             if (!$category) {
                 continue;
             }
@@ -196,8 +196,8 @@ class AssignProductsToSubcategories extends Command
             $productName = strtolower($product->name);
             $subcategory = null;
 
-            if (isset($mappings[$category->name])) {
-                foreach ($mappings[$category->name] as $keyword => $subcategoryName) {
+            if (isset($mappings[$category->nombre])) {
+                foreach ($mappings[$category->nombre] as $keyword => $subcategoryName) {
                     if (strpos($productName, $keyword) !== false) {
                         $subcategory = Subcategoria::where('nombre', $subcategoryName)
                             ->where('categoria_id', $category->id)

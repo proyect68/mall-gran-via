@@ -6,7 +6,7 @@
     <div class="offcanvas-body" style="background: #cac9ff; color: #3735af;">
         <ul class="list-unstyled">
             <li><a href="{{ route('dashboard') }}" class="d-block py-2" style="color: #3735af; text-decoration: none;"><img src="{{ asset('images/home_logo.png') }}" alt="" width="20" class="me-2" style="display: inline-block;">Volver al dashboard</a></li>
-            <li><a href="/profile" class="d-block py-2" style="color: #3735af; text-decoration: none;"><img src="{{ asset('images/profile.png') }}" alt="" width="20" class="me-2" style="display: inline-block;">Mi perfil</a></li>
+            <li><a href="{{ route('profile.show') }}" class="d-block py-2" style="color: #3735af; text-decoration: none;"><img src="{{ asset('images/perfil_logo.png') }}" alt="" width="20" class="me-2" style="display: inline-block;">Mi perfil</a></li>
             <li><a href="{{ route('categories.index') }}" class="d-block py-2" style="color: #3735af; text-decoration: none;"><img src="{{ asset('images/categoria_logo.png') }}" alt="" width="20" class="me-2" style="display: inline-block;">Todas las categorías</a></li>
             <li><a href="{{ route('superofertas.index') }}" class="d-block py-2" style="color: #3735af; text-decoration: none;"><img src="{{ asset('images/superofertas_logo.png') }}" alt="" width="20" class="me-2" style="display: inline-block;">SuperOfertas</a></li>
             <li><a href="{{ route('stores.index') }}" class="d-block py-2" style="color: #3735af; text-decoration: none;"><img src="{{ asset('images/tienda_logo.png') }}" alt="" width="20" class="me-2" style="display: inline-block;">Ver tiendas</a></li>

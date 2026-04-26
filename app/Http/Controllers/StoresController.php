@@ -11,9 +11,9 @@ class StoresController extends Controller
     public function index()
     {
         // Obtener todas las tiendas con sus categorías
-        $stores = Product::select('store')
+        $stores = Product::select('tienda')
             ->distinct()
-            ->pluck('store')
+            ->pluck('tienda')
             ->filter()
             ->sort()
             ->values()
@@ -26,9 +26,9 @@ class StoresController extends Controller
         $storesByCategory = [];
         foreach ($categories as $category) {
             $categoryStores = $category->products()
-                ->select('store')
+                ->select('tienda')
                 ->distinct()
-                ->pluck('store')
+                ->pluck('tienda')
                 ->filter()
                 ->sort()
                 ->values()
@@ -54,18 +54,18 @@ class StoresController extends Controller
     public function show($storeName)
     {
         // Obtener todos los productos de una tienda específica
-        $products = Product::where('store', $storeName)
+        $products = Product::where('tienda', $storeName)
             ->with('category')
             ->paginate(28);
 
         // Obtener información de la tienda
         $storeData = [
             'name' => $storeName,
-            'categories' => Product::where('store', $storeName)
-                ->distinct('category_id')
-                ->pluck('category_id')
+            'categories' => Product::where('tienda', $storeName)
+                ->distinct('categoria_id')
+                ->pluck('categoria_id')
                 ->toArray(),
-            'product_count' => Product::where('store', $storeName)->count(),
+            'product_count' => Product::where('tienda', $storeName)->count(),
         ];
 
         return view('stores.show', [

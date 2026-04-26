@@ -187,7 +187,7 @@ class AssignProductsToSubcategoriesSeeder extends Seeder
                 continue;
             }
 
-            $category = Category::find($product->category_id);
+            $category = Category::find($product->categoria_id);
             if (!$category) {
                 continue;
             }
@@ -195,8 +195,8 @@ class AssignProductsToSubcategoriesSeeder extends Seeder
             $productName = strtolower($product->name);
             $subcategory = null;
 
-            if (isset($mappings[$category->name])) {
-                foreach ($mappings[$category->name] as $keyword => $subcategoryName) {
+            if (isset($mappings[$category->nombre])) {
+                foreach ($mappings[$category->nombre] as $keyword => $subcategoryName) {
                     if (strpos($productName, strtolower($keyword)) !== false) {
                         $subcategory = Subcategoria::where('nombre', $subcategoryName)
                             ->where('categoria_id', $category->id)
