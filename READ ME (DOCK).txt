@@ -1,0 +1,27 @@
+git clone https://github.com/proyect68/mall-gran-via.git
+
+user: proyect68
+
+Token: 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
+
+cd webpersonal
+
+cp .env.example .env
+
+copy .env.example .env
+
+docker-compose up -d
+
+docker-compose exec app composer install
+
+docker-compose exec app php artisan key:generate
+
+docker-compose exec db psql -U postgres -c "DROP DATABASE mall_gran_via;"
+docker-compose exec db psql -U postgres -c "CREATE DATABASE mall_gran_via;"
+
+docker-compose exec -T db psql -U postgres -d mall_gran_via < backup_bueno_final_utf8.sql //backup1
+type backup_bueno_final.sql | docker-compose exec -T db psql -U postgres -d mall_gran_via //backup2
+
+docker-compose exec app php artisan migrate //por si no sirve la backup
+
+http://localhost:8000
