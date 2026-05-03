@@ -13,7 +13,9 @@ class SuperOfertasController extends Controller
     public function index(Request $request)
     {
         // Cargar todos los productos de la BD
-        $allProducts = Product::all()->toArray();
+        $allProducts = Product::all()
+            ->map(fn (Product $product) => $this->normalizeProduct($product))
+            ->all();
 
         // Obtener parámetros de filtrado
         $priceMin = $request->query('priceMin');
@@ -79,6 +81,7 @@ class SuperOfertasController extends Controller
 
         $servicios = array_map(function($p) {
             return [
+                'id' => $p['id'] ?? null,
                 'title' => $p['name'],
                 'category' => $p['store'],
                 'description' => 'Promoción especial: ' . ($p['offer'] ?: 'Oferta disponible'),
@@ -190,5 +193,23 @@ class SuperOfertasController extends Controller
             'comidas' => $comidas,
             'availableStores' => $availableStores,
         ]);
+    }
+
+    private function normalizeProduct(Product $product): array
+    {
+        return [
+            'id' => $product->id,
+            'name' => $product->name,
+            'store' => $product->store,
+            'price' => $product->price,
+            'old_price' => $product->old_price,
+            'offer' => $product->offer,
+            'color' => $product->color,
+            'image' => $product->image,
+            'expires' => $product->expires,
+            'is_service' => $product->is_service,
+            'category_id' => $product->category_id,
+            'subcategoria_id' => $product->subcategoria_id,
+        ];
     }
 }

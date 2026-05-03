@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\CategoriesController;
 use App\Http\Controllers\SuperOfertasController;
 use App\Http\Controllers\StoresController;
@@ -11,21 +13,19 @@ use App\Http\Controllers\NotificationsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('home');
-})->name('landing');
+Route::get('/', [HomeController::class, 'index'])->name('landing');
 
-Route::get('/home', function () {
-    return view('client');
-})->middleware(['auth', 'verified'])->name('client.home');
+Route::get('/home', [ProductController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('client.home');
 
 Route::get('/error', function (Request $request) {
     return view('error', ['message' => $request->query('message')]);
 })->name('error');
 
-Route::get('/dashboard', function () {
-    return view('client');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [ProductController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
 Route::get('/search', [SearchController::class, 'search'])->name('search');
 
@@ -57,7 +57,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-Route::get('/product/{id}', [\App\Http\Controllers\ProductController::class, 'show'])
+Route::get('/product/{id}', [ProductController::class, 'show'])
     ->middleware(['auth', 'verified'])
     ->name('products.show');
 

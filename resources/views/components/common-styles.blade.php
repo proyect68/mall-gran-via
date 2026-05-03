@@ -16,7 +16,8 @@
     .product-card img { width: 100%; height: 200px; object-fit: cover; }
     .product-card-body { padding: 18px; display: flex; flex-direction: column; height: 100%; }
     .product-card-title { font-weight: 700; margin-bottom: 8px; font-size: 1rem; color: #3735af; }
-    .product-card-store { color: #3735af; font-size: 0.9rem; margin-bottom: 12px; }
+    .product-card-store { color: #3735af; font-size: 0.9rem; margin-bottom: 12px; cursor: pointer; font-weight: 700; }
+    .product-card-store:hover { text-decoration: underline; }
     .product-card-prices { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
     .product-card-prices strong { font-size: 1.1rem; color: #3735af; font-weight: 700; }
     .product-card-prices del { color: #9ea0c4; font-size: 0.9rem; }

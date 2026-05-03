@@ -32,7 +32,8 @@
         .product-card img { width: 100%; height: 200px; object-fit: cover; }
         .product-card-body { padding: 18px; display: flex; flex-direction: column; height: 100%; }
         .product-card-title { font-weight: 700; margin-bottom: 8px; font-size: 1rem; color: #3735af; }
-        .product-card-store { color: #3735af; font-size: 0.9rem; margin-bottom: 12px; }
+        .product-card-store { color: #3735af; font-size: 0.9rem; margin-bottom: 12px; cursor: pointer; font-weight: 700; }
+        .product-card-store:hover { text-decoration: underline; }
         .product-card-prices { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
         .product-card-prices strong { font-size: 1.1rem; color: #3735af; font-weight: 700; }
         .product-card-prices del { color: #9ea0c4; font-size: 0.9rem; }
@@ -177,46 +178,8 @@
                 
                 @if($products->count() > 0)
                     <div class="result-group">
-                        @php $defaultPromoImage = 'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=300&h=300&fit=crop&q=80'; @endphp
                         @foreach ($products as $product)
-                            <div class="product-card">
-                                <img src="{{ $product->image ?? $defaultPromoImage }}" alt="{{ $product->name }}">
-                                <div class="product-card-body">
-                                    <div class="product-card-title">{{ $product->name }}</div>
-                                    <div class="product-card-store">{{ $product->store }}</div>
-                                    <div class="product-card-prices">
-                                        @php
-                                            $categoryProductPrice = $product->price;
-                                            if (is_numeric($categoryProductPrice)) {
-                                                $categoryProductPrice = $categoryProductPrice . ' Bs';
-                                            }
-                                            $categoryDiscountedPrice = null;
-                                            if (!empty($product->offer) && is_numeric($product->offer)) {
-                                                $discountPercent = (float)$product->offer;
-                                                $currentPrice = (float)str_replace([' Bs', 'Bs', '.', ','], '', $product->price);
-                                                if ($currentPrice > 0 && $discountPercent > 0) {
-                                                    $originalPrice = round($currentPrice / (1 - $discountPercent / 100));
-                                                    $categoryDiscountedPrice = number_format($originalPrice, 0, ',', '.') . ' Bs';
-                                                }
-                                            }
-                                        @endphp
-                                        <strong>{{ $categoryProductPrice }}</strong>
-                                        @if (!empty($categoryDiscountedPrice))
-                                            <del>{{ $categoryDiscountedPrice }}</del>
-                                        @elseif (!empty($product->old_price))
-                                            <del>@php
-                                                $categoryFallbackPrice = $product->old_price;
-                                                if (strpos($categoryFallbackPrice, 'Bs') === false && is_numeric(str_replace(['.', ','], '', $categoryFallbackPrice))) {
-                                                    $categoryFallbackPrice .= ' Bs';
-                                                }
-                                            @endphp {{ $categoryFallbackPrice }}</del>
-                                        @endif
-                                    </div>
-                                    @if (!empty($product->offer))
-                                        <span class="product-card-offer {{ $product->color ?? 'offer-red' }}">{{ $product->offer }}</span>
-                                    @endif
-                                </div>
-                            </div>
+                            <x-product-card :product="$product" />
                         @endforeach
                     </div>
 

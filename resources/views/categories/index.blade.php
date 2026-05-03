@@ -195,7 +195,7 @@
                 <li><a href="{{ route('profile.show') }}" class="d-block py-2"><img src="{{ asset('images/perfil_logo.png') }}" alt="" width="20" class="me-2" style="display: inline-block;">Mi perfil</a></li>
                 <li><a href="{{ route('dashboard') }}" class="d-block py-2"><img src="{{ asset('images/home_logo.png') }}" alt="" width="20" class="me-2" style="display: inline-block;">Volver al dashboard</a></li>
                 <li><a href="{{ route('dashboard') }}" class="d-block py-2"><img src="{{ asset('images/superofertas_logo.png') }}" alt="" width="20" class="me-2" style="display: inline-block;">SuperOfertas</a></li>
-                <li><a href="{{ route('dashboard') }}" class="d-block py-2"><img src="{{ asset('images/tienda_logo.png') }}" alt="" width="20" class="me-2" style="display: inline-block;">Ver tiendas</a></li>
+                <li><a href="{{ route('stores.index') }}" class="d-block py-2"><img src="{{ asset('images/tienda_logo.png') }}" alt="" width="20" class="me-2" style="display: inline-block;">Ver tiendas</a></li>
                 <li><a href="{{ route('search', ['q' => '']) }}" class="d-block py-2"><img src="{{ asset('images/busqueda_inteligente_logo.png') }}" alt="" width="20" class="me-2" style="display: inline-block;">Búsqueda inteligente</a></li>
                 <li><a href="{{ route('wishlist.index') }}" class="d-block py-2"><img src="{{ asset('images/listadeseos_logo.png') }}" alt="" width="20" class="me-2" style="display: inline-block;">Lista de deseos</a></li>
                 <li><a href="{{ route('history.index') }}" class="d-block py-2"><img src="{{ asset('images/historial_logo.png') }}" alt="" width="20" class="me-2" style="display: inline-block;">Historial</a></li>
@@ -325,7 +325,7 @@
                     <h5 style="color: #fff; font-weight: 700; margin-bottom: 18px;">Explorar</h5>
                     <ul class="list-unstyled">
                         <li><a href="#ofertas" style="color: #d2d4ff; text-decoration: none;">Buscar productos</a></li>
-                        <li><a href="#recomendaciones" style="color: #d2d4ff; text-decoration: none;">Ver tiendas</a></li>
+                        <li><a href="{{ route('stores.index') }}" style="color: #d2d4ff; text-decoration: none;">Ver tiendas</a></li>
                         <li><a href="#ofertas" style="color: #d2d4ff; text-decoration: none;">Categorías</a></li>
                         <li><a href="#promos" style="color: #d2d4ff; text-decoration: none;">Productos destacados</a></li>
                     </ul>

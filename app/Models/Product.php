@@ -13,8 +13,11 @@ class Product extends Model
 
     protected $fillable = [
         'nombre',
+        'descripcion',
+        'tienda_id',
         'tienda',
         'precio',
+        'stock',
         'precio_anterior',
         'oferta',
         'color',
@@ -24,6 +27,7 @@ class Product extends Model
         'categoria_id',
         'subcategoria_id',
         'name',
+        'description',
         'store',
         'price',
         'old_price',
@@ -32,6 +36,10 @@ class Product extends Model
         'expires',
         'is_service',
         'category_id',
+        'detail_url',
+        'store_url',
+        'availability_status',
+        'stock_quantity',
     ];
 
     protected $casts = [
@@ -40,6 +48,7 @@ class Product extends Model
 
     protected $appends = [
         'name',
+        'description',
         'store',
         'price',
         'old_price',
@@ -48,6 +57,10 @@ class Product extends Model
         'expires',
         'is_service',
         'category_id',
+        'detail_url',
+        'store_url',
+        'availability_status',
+        'stock_quantity',
     ];
 
     public function categoria()
@@ -55,9 +68,39 @@ class Product extends Model
         return $this->belongsTo(Category::class, 'categoria_id');
     }
 
+    public function subcategoria()
+    {
+        return $this->belongsTo(Subcategoria::class, 'subcategoria_id');
+    }
+
+    public function tienda()
+    {
+        return $this->belongsTo(Tienda::class, 'tienda_id');
+    }
+
     public function category()
     {
         return $this->categoria();
+    }
+
+    public function subcategory()
+    {
+        return $this->subcategoria();
+    }
+
+    public function images()
+    {
+        return $this->hasMany(ProductImage::class, 'id_producto')->orderBy('id_imagen');
+    }
+
+    public function variants()
+    {
+        return $this->hasMany(ProductVariant::class, 'id_producto')->orderBy('orden');
+    }
+
+    public function colors()
+    {
+        return $this->belongsToMany(Color::class, 'producto_color', 'id_producto', 'id_color');
     }
 
     public function getNameAttribute()
@@ -68,6 +111,16 @@ class Product extends Model
     public function setNameAttribute($value): void
     {
         $this->attributes['nombre'] = $value;
+    }
+
+    public function getDescriptionAttribute()
+    {
+        return $this->attributes['descripcion'] ?? null;
+    }
+
+    public function setDescriptionAttribute($value): void
+    {
+        $this->attributes['descripcion'] = $value;
     }
 
     public function getStoreAttribute()
@@ -148,5 +201,29 @@ class Product extends Model
     public function setCategoryIdAttribute($value): void
     {
         $this->attributes['categoria_id'] = $value;
+    }
+
+    public function getDetailUrlAttribute(): ?string
+    {
+        $id = $this->attributes['id'] ?? null;
+
+        return $id ? route('products.show', $id) : null;
+    }
+
+    public function getStoreUrlAttribute(): ?string
+    {
+        $store = $this->attributes['tienda_id'] ?? $this->store;
+
+        return $store ? route('stores.show', $store) : null;
+    }
+
+    public function getStockQuantityAttribute(): int
+    {
+        return max(0, (int) ($this->attributes['stock'] ?? 0));
+    }
+
+    public function getAvailabilityStatusAttribute(): string
+    {
+        return $this->stock_quantity > 0 ? 'Disponible' : 'No disponible';
     }
 }

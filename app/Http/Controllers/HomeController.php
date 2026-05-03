@@ -13,7 +13,7 @@ class HomeController extends Controller
     {
         // Si está autenticado, mostrar pantalla de cliente
         if (Auth::check()) {
-            return view('welcome');
+            return redirect()->route('dashboard');
         }
 
         // Si no está autenticado, mostrar landing de bienvenida

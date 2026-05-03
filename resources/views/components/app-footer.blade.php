@@ -9,7 +9,7 @@
                 <h5 style="color: #fff; font-weight: 700; margin-bottom: 18px;">Explorar</h5>
                 <ul class="list-unstyled">
                     <li><a href="#ofertas" style="color: #d2d4ff; text-decoration: none;">Buscar productos</a></li>
-                    <li><a href="#recomendaciones" style="color: #d2d4ff; text-decoration: none;">Ver tiendas</a></li>
+                    <li><a href="{{ route('stores.index') }}" style="color: #d2d4ff; text-decoration: none;">Ver tiendas</a></li>
                     <li><a href="#ofertas" style="color: #d2d4ff; text-decoration: none;">Categorías</a></li>
                     <li><a href="#promos" style="color: #d2d4ff; text-decoration: none;">Productos destacados</a></li>
                 </ul>

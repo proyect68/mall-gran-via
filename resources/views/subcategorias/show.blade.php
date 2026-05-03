@@ -26,7 +26,8 @@
         .product-card img { width: 100%; height: 200px; object-fit: cover; }
         .product-card-body { padding: 18px; display: flex; flex-direction: column; height: 100%; }
         .product-card-title { font-weight: 700; margin-bottom: 8px; font-size: 1rem; color: #3735af; }
-        .product-card-store { color: #3735af; font-size: 0.9rem; margin-bottom: 12px; }
+        .product-card-store { color: #3735af; font-size: 0.9rem; margin-bottom: 12px; cursor: pointer; font-weight: 700; }
+        .product-card-store:hover { text-decoration: underline; }
         .product-card-prices { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
         .product-card-prices strong { font-size: 1.1rem; color: #3735af; font-weight: 700; }
         .product-card-prices del { color: #9ea0c4; font-size: 0.9rem; }
@@ -121,32 +122,7 @@
                             <button type="button" class="stores-scroll-btn" data-direction="next">›</button>
                         </div>
                     @endif
-                    <div class="stores-carousel" id="storesCarousel">
-                        @foreach ($relatedStores as $store)
-                            <div class="store-card">
-                                <div class="store-card-image"></div>
-                                <div class="store-card-body">
-                                    <div class="store-card-name">{{ $store['name'] }}</div>
-                                    <div class="store-card-info">
-                                        @php
-                                            $isFoodCategory = $subcategoria->categoria && (stripos($subcategoria->categoria->name, 'comida') !== false || stripos($subcategoria->categoria->name, 'restaurante') !== false);
-                                            $isServiceCategory = $subcategoria->categoria && stripos($subcategoria->categoria->name, 'servicio') !== false;
-                                        @endphp
-                                        @if($isFoodCategory)
-                                            Comida disponible: {{ $store['relatedProductsCount'] }}
-                                        @elseif($isServiceCategory)
-                                            Servicios disponibles: {{ $store['relatedProductsCount'] }}
-                                        @else
-                                            Productos relacionados: {{ $store['relatedProductsCount'] }}
-                                        @endif
-                                    </div>
-                                    <span class="store-card-status">
-                                        <i class="bi bi-circle-fill" style="font-size: 0.6rem;"></i>{{ $store['status'] }}
-                                    </span>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
+                    <x-store-grid :stores="$relatedStores" carousel id="storesCarousel" />
                 </div>
             </div>
             </div>
@@ -185,41 +161,7 @@
                 </h3>
                 <div class="result-group">
                     @foreach ($products as $product)
-                        <div class="product-card">
-                            <img src="{{ $product->image ?? asset('images/placeholder.jpg') }}" alt="{{ $product->name }}">
-                            <div class="product-card-body">
-                                <div class="product-card-title">{{ $product->name }}</div>
-                                <div class="product-card-store">{{ $product->store }}</div>
-                                <div class="product-card-prices">
-                                    @php
-                                        $productPrice = $product->price;
-                                        if (strpos($productPrice, 'Bs') === false && !is_numeric($productPrice)) {
-                                            $productPrice = number_format((float)$productPrice, 0, ',', '.') . ' Bs';
-                                        } elseif (is_numeric($productPrice)) {
-                                            $productPrice = number_format((float)$productPrice, 0, ',', '.') . ' Bs';
-                                        }
-                                        $discountedPrice = null;
-                                        if (!empty($product->offer) && (int)$product->offer > 0) {
-                                            $discountPercent = (int)$product->offer;
-                                            $currentPrice = (float)str_replace([' Bs', 'Bs', '.', ','], '', $product->price);
-                                            if ($currentPrice > 0) {
-                                                $originalPrice = round($currentPrice / (1 - $discountPercent / 100));
-                                                $discountedPrice = number_format($originalPrice, 0, ',', '.') . ' Bs';
-                                            }
-                                        }
-                                    @endphp
-                                    <strong>{{ $productPrice }}</strong>
-                                    @if (!empty($discountedPrice))
-                                        <del>{{ $discountedPrice }}</del>
-                                    @elseif (!empty($product->old_price) && (float)$product->old_price > 0)
-                                        <del>{{ number_format((float)$product->old_price, 0, ',', '.') }} Bs</del>
-                                    @endif
-                                </div>
-                                @if (!empty($product->offer) && (int)$product->offer > 0)
-                                    <span class="product-card-offer offer-red">{{ (int)$product->offer }}% OFF</span>
-                                @endif
-                            </div>
-                        </div>
+                        <x-product-card :product="$product" />
                     @endforeach
                 </div>
                 @php

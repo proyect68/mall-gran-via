@@ -1,7 +1,6 @@
 @php
     use App\Models\Product;
     $availableStores = Product::select('tienda')->distinct()->pluck('tienda')->filter()->values()->toArray();
-    $defaultPromoImage = 'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=300&h=300&fit=crop&q=80';
 @endphp
 
 @extends('layouts.app-authenticated')
@@ -28,7 +27,8 @@
         .product-card img { width: 100%; height: 200px; object-fit: cover; }
         .product-card-body { padding: 18px; display: flex; flex-direction: column; height: 100%; }
         .product-card-title { font-weight: 700; margin-bottom: 8px; font-size: 1rem; color: #3735af; }
-        .product-card-store { color: #3735af; font-size: 0.9rem; margin-bottom: 12px; }
+        .product-card-store { color: #3735af; font-size: 0.9rem; margin-bottom: 12px; cursor: pointer; font-weight: 700; }
+        .product-card-store:hover { text-decoration: underline; }
         .product-card-prices { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
         .product-card-prices strong { font-size: 1.1rem; color: #3735af; font-weight: 700; }
         .product-card-prices del { color: #9ea0c4; font-size: 0.9rem; }
@@ -143,22 +143,7 @@
                             <button type="button" class="stores-scroll-btn" data-direction="next">›</button>
                         </div>
                     @endif
-                    <div class="stores-carousel" id="storesCarousel">
-                        @foreach ($relatedStores as $store)
-                            <div class="store-card">
-                                <div class="store-card-image"></div>
-                                <div class="store-card-body">
-                                    <div class="store-card-name">{{ $store['name'] }}</div>
-                                    <div class="store-card-info">
-                                        Productos relacionados: {{ $store['relatedProductsCount'] }}
-                                    </div>
-                                    <span class="store-card-status">
-                                        <i class="bi bi-circle-fill" style="font-size: 0.6rem;"></i>{{ $store['status'] }}
-                                    </span>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
+                    <x-store-grid :stores="$relatedStores" carousel id="storesCarousel" />
                 </div>
             </div>
         @endif
@@ -175,44 +160,7 @@
                 @endif
                 <div class="result-group">
                     @foreach ($services as $service)
-                        <div class="product-card">
-                            <img src="{{ $service['image'] ?? $defaultPromoImage }}" alt="{{ $service['name'] }}">
-                            <div class="product-card-body">
-                                <div class="product-card-title">{{ $service['name'] }}</div>
-                                <div class="product-card-store">{{ $service['store'] }}</div>
-                                <div class="product-card-prices">
-                                    @php
-                                        $servicePrice = $service['price'];
-                                        if (strpos($servicePrice, 'Bs') === false && is_numeric($servicePrice)) {
-                                            $servicePrice = $servicePrice . ' Bs';
-                                        }
-                                        $discountedServicePrice = null;
-                                        if (!empty($service['offer']) && strpos($service['offer'], '%') !== false) {
-                                            $discountPercent = (int)str_replace('%', '', $service['offer']);
-                                            $currentPrice = (float)str_replace([' Bs', 'Bs', '.', ','], '', $service['price']);
-                                            if ($currentPrice > 0 && $discountPercent > 0) {
-                                                $originalPrice = round($currentPrice / (1 - $discountPercent / 100));
-                                                $discountedServicePrice = number_format($originalPrice, 0, ',', '.') . ' Bs';
-                                            }
-                                        }
-                                    @endphp
-                                    <strong>{{ $servicePrice }}</strong>
-                                    @if (!empty($discountedServicePrice))
-                                        <del>{{ $discountedServicePrice }}</del>
-                                    @elseif (!empty($service['old_price']))
-                                        <del>@php
-                                            $serviceFallbackPrice = $service['old_price'];
-                                            if (strpos($serviceFallbackPrice, 'Bs') === false && is_numeric(str_replace(['.', ','], '', $serviceFallbackPrice))) {
-                                                $serviceFallbackPrice .= ' Bs';
-                                            }
-                                        @endphp {{ $serviceFallbackPrice }}</del>
-                                    @endif
-                                </div>
-                                @if (!empty($service['offer']))
-                                    <span class="product-card-offer {{ $service['color'] ?? 'offer-red' }}">{{ $service['offer'] }}</span>
-                                @endif
-                            </div>
-                        </div>
+                        <x-product-card :product="$service" />
                     @endforeach
                 </div>
                 @php
@@ -263,44 +211,7 @@
                 @endif
                 <div class="result-group">
                     @foreach ($products as $product)
-                        <div class="product-card">
-                            <img src="{{ $product['image'] ?? $defaultPromoImage }}" alt="{{ $product['name'] }}">
-                            <div class="product-card-body">
-                                <div class="product-card-title">{{ $product['name'] }}</div>
-                                <div class="product-card-store">{{ $product['store'] }}</div>
-                                <div class="product-card-prices">
-                                    @php
-                                        $searchProductPrice = $product['price'];
-                                        if (is_numeric($searchProductPrice)) {
-                                            $searchProductPrice = $searchProductPrice . ' Bs';
-                                        }
-                                        $searchDiscountedPrice = null;
-                                        if (!empty($product['offer']) && is_numeric(str_replace('%', '', $product['offer']))) {
-                                            $discountPercent3 = (int)str_replace('%', '', $product['offer']);
-                                            $currentPrice3 = (float)str_replace([' Bs', 'Bs', '.', ','], '', $product['price']);
-                                            if ($currentPrice3 > 0 && $discountPercent3 > 0) {
-                                                $originalPrice3 = round($currentPrice3 / (1 - $discountPercent3 / 100));
-                                                $searchDiscountedPrice = number_format($originalPrice3, 0, ',', '.') . ' Bs';
-                                            }
-                                        }
-                                    @endphp
-                                    <strong>{{ $searchProductPrice }}</strong>
-                                    @if (!empty($searchDiscountedPrice))
-                                        <del>{{ $searchDiscountedPrice }}</del>
-                                    @elseif (!empty($product['old_price']))
-                                        <del>@php
-                                            $productFallbackPrice = $product['old_price'];
-                                            if (strpos($productFallbackPrice, 'Bs') === false && is_numeric(str_replace(['.', ','], '', $productFallbackPrice))) {
-                                                $productFallbackPrice .= ' Bs';
-                                            }
-                                        @endphp {{ $productFallbackPrice }}</del>
-                                    @endif
-                                </div>
-                                @if (!empty($product['offer']))
-                                    <span class="product-card-offer {{ $product['color'] ?? 'offer-red' }}">{{ $product['offer'] }}</span>
-                                @endif
-                            </div>
-                        </div>
+                        <x-product-card :product="$product" />
                     @endforeach
                 </div>
                 @php

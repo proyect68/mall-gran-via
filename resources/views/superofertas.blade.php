@@ -191,7 +191,7 @@
                         @foreach ($tiendas as $index => $tienda)
                             <div class="tienda-card-wrapper">
                                 <div class="offer-card color-{{ ($index % 4) + 1 }}">
-                                    <div class="store-title">{{ $tienda['store'] }}</div>
+                                    <x-store-link :store="$tienda['store']" class="store-title">{{ $tienda['store'] }}</x-store-link>
                                     <div class="offer-products-wrapper">
                                         <div class="offer-scroll-btns">
                                             <button type="button" class="offer-scroll-btn" data-direction="prev">‹</button>
@@ -215,30 +215,32 @@
                                                     }
                                                 @endphp
                                                 <div class="offer-item">
-                                                    <div class="product-promo">
-                                                        @php
-                                                            $productImage = $product['image'] ?? 'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=600&h=400&fit=crop&q=80';
-                                                        @endphp
-                                                        <img src="{{ $productImage }}" alt="{{ $product['name'] }}">
-                                                        <div class="product-name">{{ $product['name'] }}</div>
-                                                        <div class="prices">
-                                                            <strong>{{ $productPrice }}</strong>
-                                                            @if (!empty($discountedPrice))
-                                                                <del>{{ $discountedPrice }}</del>
-                                                            @elseif (!empty($product['old_price']))
-                                                                <del>@php
-                                                                    $fallbackPrice = $product['old_price'];
-                                                                    if (strpos($fallbackPrice, 'Bs') === false && is_numeric(str_replace(['.', ','], '', $fallbackPrice))) {
-                                                                        $fallbackPrice .= ' Bs';
-                                                                    }
-                                                                @endphp {{ $fallbackPrice }}</del>
+                                                    <x-product-link :product="$product">
+                                                        <div class="product-promo">
+                                                            @php
+                                                                $productImage = $product['image'] ?? 'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=600&h=400&fit=crop&q=80';
+                                                            @endphp
+                                                            <img src="{{ $productImage }}" alt="{{ $product['name'] }}">
+                                                            <div class="product-name">{{ $product['name'] }}</div>
+                                                            <div class="prices">
+                                                                <strong>{{ $productPrice }}</strong>
+                                                                @if (!empty($discountedPrice))
+                                                                    <del>{{ $discountedPrice }}</del>
+                                                                @elseif (!empty($product['old_price']))
+                                                                    <del>@php
+                                                                        $fallbackPrice = $product['old_price'];
+                                                                        if (strpos($fallbackPrice, 'Bs') === false && is_numeric(str_replace(['.', ','], '', $fallbackPrice))) {
+                                                                            $fallbackPrice .= ' Bs';
+                                                                        }
+                                                                    @endphp {{ $fallbackPrice }}</del>
+                                                                @endif
+                                                            </div>
+                                                            <div class="expires">Vence: {{ $product['expires'] ?? '31/05/2026' }}</div>
+                                                            @if (!empty($product['offer']))
+                                                                <span class="badge-label {{ $product['color'] ?? 'offer-red' }}">{{ $product['offer'] }}</span>
                                                             @endif
                                                         </div>
-                                                        <div class="expires">Vence: {{ $product['expires'] ?? '31/05/2026' }}</div>
-                                                        @if (!empty($product['offer']))
-                                                            <span class="badge-label {{ $product['color'] ?? 'offer-red' }}">{{ $product['offer'] }}</span>
-                                                        @endif
-                                                    </div>
+                                                    </x-product-link>
                                                 </div>
                                             @endforeach
                                         </div>
@@ -263,41 +265,7 @@
                     <div class="row g-4 promo-row">
                         @foreach ($servicios as $servicio)
                             <div class="col-12 col-sm-6 col-lg-3">
-                                <div class="promo-card">
-                                    @php
-                                        $servicioImage = $servicio['image'] ?? 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&h=400&fit=crop&q=80';
-                                    @endphp
-                                    <img src="{{ $servicioImage }}" alt="{{ $servicio['title'] }}" class="promo-image" style="width: 100%; height: 220px; object-fit: cover; border-radius: 12px; margin-bottom: 16px;">
-                                    <h3 style="margin-bottom: 8px; font-size: 1.1rem;">{{ $servicio['title'] }}</h3>
-                                    <div class="category">{{ $servicio['category'] }}</div>
-                                    <p class="promo-text">{{ substr($servicio['description'], 0, 60) }}{{ strlen($servicio['description']) > 60 ? '...' : '' }}</p>
-                                    <div class="prices">
-                                        @php
-                                            $servicePrice = $servicio['price'];
-                                            if (strpos($servicePrice, 'Bs') === false) {
-                                                $servicePrice .= ' Bs';
-                                            }
-                                            $servicioDiscountedPrice = null;
-                                            if (!empty($servicio['badge']) && strpos($servicio['badge'], '%') !== false) {
-                                                $discountPercent = (int)str_replace('%', '', $servicio['badge']);
-                                                $currentPrice = (float)str_replace([' Bs', 'Bs', '.', ','], '', $servicio['price']);
-                                                if ($currentPrice > 0 && $discountPercent > 0) {
-                                                    $originalPrice = round($currentPrice / (1 - $discountPercent / 100));
-                                                    $servicioDiscountedPrice = number_format($originalPrice, 0, ',', '.') . ' Bs';
-                                                }
-                                            }
-                                        @endphp
-                                        <strong>{{ $servicePrice }}</strong>
-                                        @if (!empty($servicioDiscountedPrice))
-                                            <del>{{ $servicioDiscountedPrice }}</del>
-                                        @elseif (!empty($servicio['old_price']))
-                                            <del>{{ $servicio['old_price'] }}</del>
-                                        @endif
-                                    </div>
-                                    @if (!empty($servicio['badge']))
-                                        <span class="promo-badge {{ $servicio['color'] ?? 'offer-red' }}">{{ $servicio['badge'] }}</span>
-                                    @endif
-                                </div>
+                                <x-product-card :product="$servicio" />
                             </div>
                         @endforeach
                     </div>
@@ -318,7 +286,7 @@
                         @foreach ($comidas as $index => $comida)
                             <div class="col-12 col-lg-6">
                                 <div class="offer-card color-{{ ($index % 4) + 1 }}">
-                                    <div class="store-title">{{ $comida['store'] }}</div>
+                                    <x-store-link :store="$comida['store']" class="store-title">{{ $comida['store'] }}</x-store-link>
                                     <div class="offer-products-wrapper">
                                         <div class="offer-scroll-btns">
                                             <button type="button" class="offer-scroll-btn" data-direction="prev">‹</button>
@@ -340,32 +308,34 @@
                                                     $comidaDiscountedPrice = number_format($originalPrice, 0, ',', '.') . ' Bs';
                                                 }
                                             }
-                                        @endphp
+                                                @endphp
                                                 <div class="offer-item">
-                                                    <div class="product-promo">
-                                                        @php
-                                                            $comidaImage = $product['image'] ?? 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?w=600&h=400&fit=crop&q=80';
-                                                        @endphp
-                                                        <img src="{{ $comidaImage }}" alt="{{ $product['name'] }}">
-                                                        <div class="product-name">{{ $product['name'] }}</div>
-                                                        <div class="prices">
-                                                            <strong>{{ $comidaPrice }}</strong>
-                                                            @if (!empty($comidaDiscountedPrice))
-                                                                <del>{{ $comidaDiscountedPrice }}</del>
-                                                            @elseif (!empty($product['old_price']))
-                                                                <del>@php
-                                                                    $comidaFallbackPrice = $product['old_price'];
-                                                                    if (strpos($comidaFallbackPrice, 'Bs') === false && is_numeric(str_replace(['.', ','], '', $comidaFallbackPrice))) {
-                                                                        $comidaFallbackPrice .= ' Bs';
-                                                                    }
-                                                                @endphp {{ $comidaFallbackPrice }}</del>
+                                                    <x-product-link :product="$product">
+                                                        <div class="product-promo">
+                                                            @php
+                                                                $comidaImage = $product['image'] ?? 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?w=600&h=400&fit=crop&q=80';
+                                                            @endphp
+                                                            <img src="{{ $comidaImage }}" alt="{{ $product['name'] }}">
+                                                            <div class="product-name">{{ $product['name'] }}</div>
+                                                            <div class="prices">
+                                                                <strong>{{ $comidaPrice }}</strong>
+                                                                @if (!empty($comidaDiscountedPrice))
+                                                                    <del>{{ $comidaDiscountedPrice }}</del>
+                                                                @elseif (!empty($product['old_price']))
+                                                                    <del>@php
+                                                                        $comidaFallbackPrice = $product['old_price'];
+                                                                        if (strpos($comidaFallbackPrice, 'Bs') === false && is_numeric(str_replace(['.', ','], '', $comidaFallbackPrice))) {
+                                                                            $comidaFallbackPrice .= ' Bs';
+                                                                        }
+                                                                    @endphp {{ $comidaFallbackPrice }}</del>
+                                                                @endif
+                                                            </div>
+                                                            <div class="expires">Vence: {{ $product['expires'] ?? '31/05/2026' }}</div>
+                                                            @if (!empty($product['offer']))
+                                                                <span class="badge-label {{ $product['color'] ?? 'offer-red' }}">{{ $product['offer'] }}</span>
                                                             @endif
                                                         </div>
-                                                        <div class="expires">Vence: {{ $product['expires'] ?? '31/05/2026' }}</div>
-                                                        @if (!empty($product['offer']))
-                                                            <span class="badge-label {{ $product['color'] ?? 'offer-red' }}">{{ $product['offer'] }}</span>
-                                                        @endif
-                                                    </div>
+                                                    </x-product-link>
                                                 </div>
                                     @endforeach
                                         </div>

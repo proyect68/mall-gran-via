@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\Tienda;
 use App\Services\FastApi\SearchApiClient;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Schema;
 use Throwable;
 
 class SearchController extends Controller
@@ -50,7 +53,10 @@ class SearchController extends Controller
             $productQuery->whereNotNull('oferta')->where('oferta', '!=', '');
         }
 
-        $allProducts = $productQuery->get()->toArray();
+        $allProducts = $productQuery
+            ->get()
+            ->map(fn (Product $product) => $this->normalizeProductModel($product))
+            ->all();
         
         // Si no hay query válida, mostrar todos los productos
         if (!$query || strlen($query) < 2) {
@@ -156,17 +162,9 @@ class SearchController extends Controller
         $allFilteredResults = array_merge($filteredProducts, $filteredServices);
         $storesByName = collect($allFilteredResults)->groupBy('store');
         
-        $relatedStores = [];
+        $relatedStores = collect();
         if ($page == 1) { // Solo mostrar tiendas en la página 1
-            $relatedStores = $storesByName->map(function ($storeProducts, $storeName) {
-                return [
-                    'name' => $storeName,
-                    'image' => 'https://images.unsplash.com/photo-1555632238-c47966bcbe66?w=400&h=400&fit=crop&q=80',
-                    'relatedProductsCount' => count($storeProducts),
-                    'products' => $storeProducts->take(3)->toArray(),
-                    'status' => 'Abierto',
-                ];
-            })->values()->all();
+            $relatedStores = $this->storesFromNames($storesByName->keys(), $storesByName);
         }
 
         return view('search.results', [
@@ -197,11 +195,13 @@ class SearchController extends Controller
         try {
             $payload = app(SearchApiClient::class)->search($params);
 
+            $normalizedStores = $this->normalizeStores($payload['tiendas_relacionadas'] ?? []);
+
             return [
                 'query' => $payload['query'] ?? $params['q'],
                 'products' => $this->normalizeProducts($payload['productos'] ?? []),
                 'services' => $this->normalizeProducts($payload['servicios'] ?? []),
-                'relatedStores' => $this->normalizeStores($payload['tiendas_relacionadas'] ?? []),
+                'relatedStores' => $this->storesFromNames(collect($normalizedStores)->pluck('name')->filter()),
                 'currentPage' => $payload['pagina_actual'] ?? ($params['page'] ?? 1),
                 'totalPages' => $payload['total_paginas_productos'] ?? 1,
                 'totalPages_services' => $payload['total_paginas_servicios'] ?? 1,
@@ -241,6 +241,24 @@ class SearchController extends Controller
         }, $items);
     }
 
+    private function normalizeProductModel(Product $product): array
+    {
+        return [
+            'id' => $product->id,
+            'name' => $product->name,
+            'store' => $product->store,
+            'price' => $product->price,
+            'old_price' => $product->old_price,
+            'offer' => $product->offer,
+            'color' => $product->color,
+            'image' => $product->image,
+            'expires' => $product->expires,
+            'is_service' => $product->is_service,
+            'category_id' => $product->category_id,
+            'subcategoria_id' => $product->subcategoria_id,
+        ];
+    }
+
     private function normalizeStores(array $stores): array
     {
         return array_map(function (array $store) {
@@ -252,6 +270,41 @@ class SearchController extends Controller
                 'status' => $store['estado'] ?? 'Abierto',
             ];
         }, $stores);
+    }
+
+    private function storesFromNames($storeNames, ?Collection $relatedProductsByStore = null): Collection
+    {
+        $names = collect($storeNames)->filter()->unique()->values();
+
+        if ($names->isEmpty()) {
+            return collect();
+        }
+
+        $stores = Tienda::query()
+            ->whereIn('nombre', $names)
+            ->orderBy('nombre')
+            ->get();
+
+        $stores->each(function (Tienda $tienda) use ($relatedProductsByStore) {
+            $productos = Product::query()
+                ->where(function ($query) use ($tienda) {
+                    if (Schema::hasColumn('productos', 'tienda_id') && $tienda->getKey()) {
+                        $query->where('tienda_id', $tienda->getKey());
+                    }
+
+                    $query->orWhere('tienda', $tienda->nombre);
+                })
+                ->with(['categoria', 'subcategoria'])
+                ->get();
+
+            $tienda->setRelation('productos', $productos);
+
+            if ($relatedProductsByStore && $relatedProductsByStore->has($tienda->nombre)) {
+                $tienda->setAttribute('related_products_count', $relatedProductsByStore->get($tienda->nombre)->count());
+            }
+        });
+
+        return $stores;
     }
     
     /**
@@ -265,7 +318,7 @@ class SearchController extends Controller
         $queryWords = preg_split('/\s+/', $queryLower, -1, PREG_SPLIT_NO_EMPTY);
         
         // Detectar si el usuario está buscando tienda + producto
-        $availableStores = collect($products)->pluck('tienda')->filter()->unique()->toArray();
+        $availableStores = collect($products)->pluck('store')->filter()->unique()->toArray();
         $mentionedStore = null;
         $productKeywords = $queryWords;
         

@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Subcategoria;
+use App\Models\Tienda;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 
 class CategoriesController extends Controller
 {
@@ -63,19 +65,34 @@ class CategoriesController extends Controller
         $category = $subcategoria->categoria;
         
         // Obtener tiendas relacionadas a la subcategoría
-        $relatedStores = $subcategoria->productos()
+        $storeNames = $subcategoria->productos()
             ->select('tienda')
             ->distinct()
             ->get()
-            ->map(function ($product) use ($subcategoria) {
-                $storeProducts = $subcategoria->productos()->where('tienda', $product->store)->count();
-                return [
-                    'name' => $product->store,
-                    'relatedProductsCount' => $storeProducts,
-                    'status' => 'Abierto',
-                ];
-            })
-            ->toArray();
+            ->pluck('store')
+            ->filter();
+
+        $relatedStores = Tienda::query()
+            ->whereIn('nombre', $storeNames)
+            ->orderBy('nombre')
+            ->get();
+
+        $relatedStores->each(function (Tienda $tienda) use ($subcategoria) {
+            $productos = Product::query()
+                ->where('subcategoria_id', $subcategoria->id)
+                ->where(function ($query) use ($tienda) {
+                    if (Schema::hasColumn('productos', 'tienda_id') && $tienda->getKey()) {
+                        $query->where('tienda_id', $tienda->getKey());
+                    }
+
+                    $query->orWhere('tienda', $tienda->nombre);
+                })
+                ->with(['categoria', 'subcategoria'])
+                ->get();
+
+            $tienda->setRelation('productos', $productos);
+            $tienda->setAttribute('related_products_count', $productos->count());
+        });
         
         // Obtener productos de la subcategoría - 28 productos por página (4 filas de 7)
         $products = $subcategoria->productos()->paginate(28);

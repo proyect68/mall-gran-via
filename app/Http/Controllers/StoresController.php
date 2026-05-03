@@ -4,73 +4,96 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Tienda;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 
 class StoresController extends Controller
 {
+    /**
+     * Mostrar listado de todas las tiendas
+     */
     public function index()
     {
-        // Obtener todas las tiendas con sus categorías
-        $stores = Product::select('tienda')
-            ->distinct()
-            ->pluck('tienda')
-            ->filter()
-            ->sort()
-            ->values()
-            ->toArray();
+        $tiendas = Tienda::query()
+            ->orderBy('nombre')
+            ->get();
 
-        // Obtener todas las categorías
-        $categories = Category::with('products')->get();
+        $this->attachProductData($tiendas);
 
-        // Agrupar tiendas por categoría
-        $storesByCategory = [];
-        foreach ($categories as $category) {
-            $categoryStores = $category->products()
-                ->select('tienda')
-                ->distinct()
-                ->pluck('tienda')
-                ->filter()
-                ->sort()
-                ->values()
-                ->toArray();
+        $storesByCategory = $this->groupStoresByCategory($tiendas);
 
-            if (!empty($categoryStores)) {
-                $storesByCategory[$category->id] = [
-                    'category' => $category,
-                    'stores' => $categoryStores,
-                    'store_count' => count($categoryStores),
-                    'product_count' => $category->products()->count(),
-                ];
-            }
-        }
-
-        return view('stores.index', [
-            'storesByCategory' => $storesByCategory,
-            'totalStores' => count($stores),
-            'totalCategories' => count($storesByCategory),
-        ]);
+        return view('stores.index', compact('tiendas', 'storesByCategory'));
     }
 
-    public function show($storeName)
+    /**
+     * Mostrar detalle de una tienda específica
+     */
+    public function show($store)
     {
-        // Obtener todos los productos de una tienda específica
-        $products = Product::where('tienda', $storeName)
-            ->with('category')
-            ->paginate(28);
+        $tienda = $this->findStore($store);
+        $productsQuery = $this->productsForStore($tienda);
 
-        // Obtener información de la tienda
-        $storeData = [
-            'name' => $storeName,
-            'categories' => Product::where('tienda', $storeName)
-                ->distinct('categoria_id')
-                ->pluck('categoria_id')
-                ->toArray(),
-            'product_count' => Product::where('tienda', $storeName)->count(),
-        ];
+        $productos = (clone $productsQuery)
+            ->with(['categoria', 'subcategoria'])
+            ->paginate(12);
 
-        return view('stores.show', [
-            'store' => $storeData,
-            'products' => $products,
-        ]);
+        $tienda->setRelation('productos', (clone $productsQuery)->with(['categoria', 'subcategoria'])->get());
+
+        return view('stores.show', compact('tienda', 'productos'));
+    }
+
+    private function findStore(string|int $store): Tienda
+    {
+        $keyName = (new Tienda())->getKeyName();
+
+        return Tienda::query()
+            ->when(is_numeric($store), fn ($query) => $query->where($keyName, $store))
+            ->when(! is_numeric($store), fn ($query) => $query->where('nombre', $store))
+            ->firstOrFail();
+    }
+
+    private function attachProductData($tiendas): void
+    {
+        $tiendas->each(function (Tienda $tienda) {
+            $tienda->setRelation(
+                'productos',
+                $this->productsForStore($tienda)->with(['categoria', 'subcategoria'])->get()
+            );
+        });
+    }
+
+    private function groupStoresByCategory($tiendas)
+    {
+        $groups = collect();
+
+        $tiendas->each(function (Tienda $tienda) use ($groups) {
+            $categorias = $tienda->categorias;
+
+            if ($categorias->isEmpty()) {
+                $groups->put('Sin categoria', $groups->get('Sin categoria', collect())->push($tienda));
+                return;
+            }
+
+            $categorias->each(function ($categoria) use ($groups, $tienda) {
+                $name = $categoria->name ?? $categoria->nombre ?? 'Sin categoria';
+                $groups->put($name, $groups->get($name, collect())->push($tienda));
+            });
+        });
+
+        return $groups->sortKeys();
+    }
+
+    private function productsForStore(Tienda $tienda)
+    {
+        return Product::query()
+            ->where(function ($query) use ($tienda) {
+                if (Schema::hasColumn('productos', 'tienda_id') && $tienda->getKey()) {
+                    $query->where('tienda_id', $tienda->getKey());
+                }
+
+                $query->orWhere('tienda', $tienda->nombre);
+            })
+            ->orderBy('nombre');
     }
 }

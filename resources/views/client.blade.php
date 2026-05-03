@@ -1,95 +1,3 @@
-﻿@php
-    use App\Models\Product;
-
-    $heroSlides = [
-        [
-            'title' => 'Bienvenido al Mall Gran Vía',
-            'text' => 'Descubre tiendas, promociones y servicios en un solo lugar. Desliza para encontrar lo que quieres.',
-            'image' => 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&h=600&fit=crop&q=80'
-        ],
-        [
-            'title' => 'Ofertas destacadas cada día',
-            'text' => 'Las mejores promociones de tu mall están aquí: descuentos, 2x1, combos y productos imperdibles.',
-            'image' => 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1200&h=600&fit=crop&q=80'
-        ],
-        [
-            'title' => 'Recomendaciones personalizadas',
-            'text' => 'Encuentra productos según tus búsquedas y lo más visitado en la plataforma.',
-            'image' => 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1200&h=600&fit=crop&q=80'
-        ],
-    ];
-
-    // Cargar todos los productos de la BD
-    $allProducts = Product::all();
-
-    // OFERTAS: Solo productos (NO servicios), agrupados por tienda
-    $offers = [];
-    $storeGrouped = [];
-    foreach ($allProducts as $product) {
-        // Solo incluir productos, NO servicios (es_servicio debe ser 0 o false)
-        if ((int)$product->es_servicio === 1) continue;
-        
-        if (!isset($storeGrouped[$product->tienda])) {
-            $storeGrouped[$product->tienda] = [];
-        }
-        $storeGrouped[$product->tienda][] = $product;
-    }
-
-    // Crear ofertas: Primera tienda genérica + ElectroMall como segunda
-    $storeCount = 0;
-    foreach ($storeGrouped as $storeName => $products) {
-        if ($storeCount >= 1 && $storeName !== 'ElectroMall') continue; // Saltar otras tiendas hasta ElectroMall
-        
-        // Filtrar solo productos con oferta para ElectroMall
-        if ($storeName === 'ElectroMall') {
-            $productsWithOffer = array_filter($products, function($p) {
-                return !empty($p->oferta);
-            });
-            if (empty($productsWithOffer)) continue; // Si ElectroMall no tiene ofertas, saltar
-            $products = array_values($productsWithOffer);
-        }
-        
-        $offers[] = [
-            'store' => $storeName,
-            'products' => array_slice($products, 0, 6),
-        ];
-        $storeCount++;
-        if ($storeCount >= 2) break;
-    }
-
-    // PROMOS: Solo servicios (es_servicio=true) con ofertas, mínimo 4 servicios
-    $promosRaw = $allProducts->filter(function($p) {
-        // Solo servicios (es_servicio debe ser 1)
-        if ((int)$p->es_servicio !== 1) return false;
-        // Que tenga oferta
-        if (empty($p->oferta)) return false;
-        return true;
-    });
-    
-    $promos = $promosRaw->take(4)->map(function($p) {
-        return [
-            'title' => $p->nombre,
-            'category' => $p->tienda,
-            'description' => 'Promoción especial: ' . ($p->oferta ?: 'Oferta disponible'),
-            'price' => $p->precio,
-            'old_price' => $p->precio_anterior ?? null,
-            'badge' => $p->oferta ?? 'Oferta',
-            'color' => $p->color ?? 'offer-red',
-            'image' => $p->imagen ?? 'https://via.placeholder.com/400x300/cccccc/666666?text=Promo',
-            'expires' => $p->expira ?? null,
-        ];
-    })->values()->toArray();
-
-    // Recomendaciones (solo productos, NO servicios)
-    $productsOnly = $allProducts->filter(function($p) {
-        return !$p->es_servicio;
-    });
-    $recommendations = $productsOnly->take(14);
-
-    $availableStores = $allProducts->pluck('tienda')->unique()->values();
-@endphp
-
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -404,10 +312,10 @@
                 <div class="carousel-inner rounded-4 overflow-hidden shadow-lg">
                     @foreach ($heroSlides as $index => $slide)
                         <div class="carousel-item {{ $index === 0 ? 'active' : '' }}">
-                            <img src="{{ $slide['image'] }}" class="d-block w-100" alt="{{ $slide['title'] }}">
+                            <img src="{{ $slide->image }}" class="d-block w-100" alt="{{ $slide->title }}">
                             <div class="carousel-caption text-start">
-                                <h1>{{ $slide['title'] }}</h1>
-                                <p>{{ $slide['text'] }}</p>
+                                <h1>{{ $slide->title }}</h1>
+                                <p>{{ $slide->text }}</p>
                                 <div class="d-flex flex-wrap gap-2">
                                     <a href="#ofertas" class="btn btn-light btn-lg rounded-pill px-4">Ver ofertas</a>
                                     <a href="#recomendaciones" class="btn btn-outline-light btn-lg rounded-pill px-4">Ver recomendaciones</a>
@@ -457,64 +365,29 @@
                     @foreach ($offers as $index => $offer)
                         <div class="col-12 col-lg-6">
                             <div class="offer-card color-{{ ($index % 4) + 1 }}">
-                                <div class="store-title">{{ $offer['store'] }}</div>
+                                <x-store-link :store="$offer->store" class="store-title">{{ $offer->store }}</x-store-link>
                                 <div class="offer-products-wrapper">
                                     <div class="offer-scroll-btns">
                                         <button type="button" class="offer-scroll-btn" data-direction="prev">‹</button>
                                         <button type="button" class="offer-scroll-btn" data-direction="next">›</button>
                                     </div>
                                     <div class="offer-carousel" id="offer-carousel-{{ $index }}">
-                                        @foreach ($offer['products'] as $product)
-                                            @php
-                                                $productImage = $product->imagen ?? 'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=600&h=400&fit=crop&q=80';
-                                                
-                                                // Calcular old_price si no existe pero hay descuento porcentual
-                                                $oldPrice = $product->precio_anterior;
-                                                if (empty($oldPrice) && strpos($product->oferta ?? '', '%') !== false) {
-                                                    $discountPercent = (int)str_replace('%', '', $product->oferta);
-                                                    $currentPrice = (float)str_replace([' BS', '.', ','], '', $product->precio);
-                                                    $originalPrice = round($currentPrice / (1 - $discountPercent / 100));
-                                                    $oldPrice = number_format($originalPrice, 0, '', '.') . ' BS';
-                                                }
-                                            @endphp
+                                        @foreach ($offer->products as $product)
                                             <div class="offer-item">
-                                                <a href="{{ route('products.show', $product->id) }}" style="text-decoration:none; color:inherit;">
-                                                <div class="product-promo">
-                                                    <img src="{{ $productImage }}" alt="{{ $product->nombre }}">
-                                                    <div class="product-name">{{ $product->nombre }}</div>
-                                                    <div class="prices">
-                                                        @php
-                                                            $priceDisplay = $product->precio;
-                                                            if (strpos($priceDisplay, 'Bs') === false) {
-                                                                $priceDisplay .= ' Bs';
-                                                            }
-                                                            $discountedOldPrice = null;
-                                                            if (!empty($product->oferta) && strpos($product->oferta, '%') !== false) {
-                                                                $discountPercent = (int)str_replace('%', '', $product->oferta);
-                                                                $currentPrice = (float)str_replace([' Bs', 'Bs', '.', ','], '', $product->precio);
-                                                                if ($currentPrice > 0 && $discountPercent > 0) {
-                                                                    $originalPrice = round($currentPrice / (1 - $discountPercent / 100));
-                                                                    $discountedOldPrice = number_format($originalPrice, 0, ',', '.') . ' Bs';
-                                                                }
-                                                            }
-                                                            $oldPrice = null;
-                                                            if (!empty($product->precio_anterior)) {
-                                                                $oldPrice = $product->precio_anterior;
-                                                                if (strpos($oldPrice, 'Bs') === false && is_numeric(str_replace(['.', ','], '', $oldPrice))) {
-                                                                    $oldPrice .= ' Bs';
-                                                                }
-                                                            }
-                                                        @endphp
-                                                        <strong>{{ $priceDisplay }}</strong>
-                                                        @if (!empty($discountedOldPrice))
-                                                            <del>{{ $discountedOldPrice }}</del>
-                                                        @elseif (!empty($oldPrice))
-                                                            <del>{{ $oldPrice }}</del>
-                                                        @endif
+                                                <x-product-link :product="$product">
+                                                    <div class="product-promo">
+                                                        <img src="{{ $product->image_display }}" alt="{{ $product->name }}">
+                                                        <div class="product-name">{{ $product->name }}</div>
+                                                        <div class="prices">
+                                                            <strong>{{ $product->price_display }}</strong>
+                                                            @if (!empty($product->old_price_display))
+                                                                <del>{{ $product->old_price_display }}</del>
+                                                            @endif
+                                                        </div>
+                                                        <div class="expires">Vence: {{ $product->expires_display }}</div>
+                                                        <span class="badge-label {{ $product->color_display }}">{{ $product->badge_display }}</span>
                                                     </div>
-                                                    <div class="expires">Vence: {{ $product->expira ?? '31/04/2026' }}</div>
-                                                    <span class="badge-label {{ $product->color ?? 'offer-red' }}">{{ $product->oferta ?? '-' }}</span>
-                                                </div>
+                                                </x-product-link>
                                             </div>
                                         @endforeach
                                     </div>
@@ -533,35 +406,7 @@
                 <div class="row g-4">
                     @foreach ($promos as $promo)
                         <div class="col-12 col-sm-6 col-lg-3">
-                            <div class="promo-card">
-                                <img src="{{ $promo['image'] }}" alt="{{ $promo['title'] }}" class="promo-image" style="width: 100%; height: 220px; object-fit: cover; border-radius: 12px; margin-bottom: 16px;">
-                                <h3 style="margin-bottom: 8px; font-size: 1.1rem;">{{ $promo['title'] }}</h3>
-                                <div class="category" style="margin-bottom: 8px;">{{ $promo['category'] }}</div>
-                                <p class="promo-text" style="margin-bottom: 10px; font-size: 0.9rem;">{{ $promo['description'] }}</p>
-                                <div class="prices" style="margin-bottom: 10px; font-weight: 700; color: #1f1f4e;">
-                                    @php
-                                        $promoPrice = $promo['price'];
-                                        if (strpos($promoPrice, 'Bs') === false) {
-                                            $promoPrice .= ' Bs';
-                                        }
-                                        $promoOldPrice = $promo['old_price'] ?? null;
-                                        if (empty($promoOldPrice) && !empty($promo['badge']) && strpos($promo['badge'], '%') !== false) {
-                                            $discountPercent = (int)str_replace('%', '', $promo['badge']);
-                                            $currentPrice = (float)str_replace([' Bs', 'Bs', '.', ','], '', $promo['price']);
-                                            if ($currentPrice > 0 && $discountPercent > 0) {
-                                                $originalPrice = round($currentPrice / (1 - $discountPercent / 100));
-                                                $promoOldPrice = number_format($originalPrice, 0, ',', '.') . ' Bs';
-                                            }
-                                        }
-                                    @endphp
-                                    Precio: {{ $promoPrice }}
-                                    @if (!empty($promoOldPrice))
-                                        <del style="color: #9ea0c4; margin-left: 8px;">{{ $promoOldPrice }}</del>
-                                    @endif
-                                </div>
-                                <div class="expires">Vence: {{ $promo['expires'] }}</div>
-                                <div class="promo-badge {{ $promo['color'] }}" style="margin-top: 8px;">{{ $promo['badge'] }}</div>
-                            </div>
+                            <x-product-card :product="$promo" />
                         </div>
                     @endforeach
                 </div>
@@ -578,35 +423,7 @@
                 <div class="recommendation-group mb-4">
                     @foreach ($recommendations as $item)
                         <div class="recommendation-item">
-                            <article class="recommendation-card">
-                                <img src="{{ $item->imagen }}" alt="{{ $item->nombre }}" class="w-100 rounded mb-3">
-                                <div class="title" style="font-size: 0.95rem;">{{ $item->nombre }}</div>
-                                <div class="store-name">{{ $item->tienda }}</div>
-                                <div class="price" style="margin-bottom: 10px;">
-                                    @php
-                                        $clientItemPrice = $item->precio;
-                                        if (strpos($clientItemPrice, 'Bs') === false) {
-                                            $clientItemPrice .= ' Bs';
-                                        }
-                                        $oldPrice = $item->precio_anterior;
-                                        if (empty($oldPrice) && strpos($item->oferta ?? '', '%') !== false) {
-                                            $discountPercent = (int)str_replace('%', '', $item->oferta);
-                                            $currentPrice = (float)str_replace([' Bs', 'Bs', '.', ','], '', $item->precio);
-                                            if ($currentPrice > 0 && $discountPercent > 0) {
-                                                $originalPrice = round($currentPrice / (1 - $discountPercent / 100));
-                                                $oldPrice = number_format($originalPrice, 0, ',', '.') . ' Bs';
-                                            }
-                                        }
-                                    @endphp
-                                    <strong>{{ $clientItemPrice }}</strong>
-                                    @if (!empty($oldPrice))
-                                        <del style="color:#8f92b7; margin-left:8px;">{{ $oldPrice }}</del>
-                                    @endif
-                                </div>
-                                @if ($item->oferta)
-                                    <span class="badge-label {{ $item->color }}" style="font-size: 0.75rem;">{{ $item->oferta }}</span>
-                                @endif
-                            </article>
+                            <x-product-card :product="$item" />
                         </div>
                     @endforeach
                 </div>

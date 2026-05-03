@@ -1,263 +1,47 @@
 @extends('layouts.app-authenticated')
 
-@section('title', 'Ver Tiendas')
+@section('title', 'Tiendas')
 
 @section('styles')
 <style>
-    .page-header { 
-        background: linear-gradient(135deg, #6f62f0 0%, #7d5cff 100%); 
-        color: #fff; 
-        padding: 30px 0 20px; 
-        margin-bottom: 30px; 
-    }
-    .page-header h1 { 
-        font-size: 1.8rem; 
-        font-weight: 800; 
-        margin-bottom: 8px; 
-    }
-    .page-header p { 
-        font-size: 0.95rem; 
-        margin-bottom: 0; 
-        opacity: 0.95; 
-    }
-
-    .category-section { 
-        margin-bottom: 40px; 
-    }
-
-    .category-header { 
-        display: flex; 
-        align-items: center; 
-        gap: 16px; 
-        margin-bottom: 24px; 
-        padding-bottom: 16px; 
-        border-bottom: 3px solid #e0e0e0; 
-    }
-
-    .category-header img { 
-        width: 70px; 
-        height: 70px; 
-        border-radius: 12px; 
-        object-fit: cover; 
-    }
-
-    .category-info h3 { 
-        font-size: 1.4rem; 
-        font-weight: 700; 
-        margin: 0; 
-        color: #1f1f4e; 
-    }
-
-    .category-info p { 
-        margin: 4px 0 0 0; 
-        color: #6c7190; 
-        font-size: 0.9rem; 
-    }
-
-    .stores-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 24px;
-        margin-bottom: 48px;
-    }
-
-    .store-card {
-        background: linear-gradient(135deg, #e8e7ff 0%, #f0efff 100%);
-        border-radius: 18px;
-        padding: 24px;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-        transition: all 0.3s ease;
-        cursor: pointer;
-        border: 2px solid transparent;
-    }
-
-    .store-card:hover {
-        transform: translateY(-6px);
-        box-shadow: 0 12px 32px rgba(0,0,0,0.15);
-        border-color: #6f62f0;
-    }
-
-    .store-card-icon {
-        width: 60px;
-        height: 60px;
-        border-radius: 12px;
-        background: linear-gradient(135deg, #6f62f0 0%, #7d5cff 100%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #fff;
-        font-size: 28px;
-        margin-bottom: 16px;
-    }
-
-    .store-card h4 {
-        font-size: 1.3rem;
-        font-weight: 700;
-        margin-bottom: 8px;
-        color: #1f1f4e;
-    }
-
-    .store-card-info {
-        display: flex;
-        gap: 20px;
-        margin-top: 12px;
-        padding-top: 12px;
-        border-top: 1px solid #e0e0e0;
-    }
-
-    .store-card-stat {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        color: #6c7190;
-        font-size: 0.95rem;
-    }
-
-    .store-card-stat strong {
-        color: #1f1f4e;
-        font-weight: 700;
-    }
-
-    .empty-state {
-        text-align: center;
-        padding: 60px 20px;
-    }
-
-    .empty-state-icon {
-        font-size: 3rem;
-        margin-bottom: 16px;
-        opacity: 0.5;
-    }
-
-    .empty-state p {
-        color: #6c7190;
-        font-size: 1rem;
-    }
-
-    .stats-bar {
-        background: #fff;
-        border-radius: 12px;
-        padding: 20px;
-        margin-bottom: 30px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-        display: flex;
-        gap: 30px;
-        justify-content: center;
-        flex-wrap: wrap;
-    }
-
-    .stat-item {
-        text-align: center;
-    }
-
-    .stat-item-number {
-        font-size: 2rem;
-        font-weight: 800;
-        color: #6f62f0;
-    }
-
-    .stat-item-label {
-        color: #6c7190;
-        font-size: 0.9rem;
-        margin-top: 4px;
-    }
-
-    @media (max-width: 768px) {
-        .stores-grid {
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 16px;
-        }
-        .page-header h1 {
-            font-size: 1.5rem;
-        }
-        .category-header {
-            flex-direction: column;
-            text-align: center;
-        }
-        .category-header img {
-            width: 80px;
-            height: 80px;
-        }
-        .stats-bar {
-            gap: 20px;
-        }
-        .stat-item-number {
-            font-size: 1.8rem;
-        }
-    }
+    .stores-page { background: #f5f7ff; min-height: calc(100vh - 80px); padding: 42px 0 58px; }
+    .stores-shell { max-width: 1220px; margin: 0 auto; padding: 0 20px; }
+    .page-title { font-size: clamp(2rem, 4vw, 2.8rem); font-weight: 900; color: #1f1f4e; margin-bottom: 8px; }
+    .page-subtitle { color: #6c7190; font-size: 1.05rem; margin-bottom: 10px; }
+    .stores-total { color: #3735af; font-weight: 850; margin-bottom: 32px; }
+    .store-category-section { margin-bottom: 42px; }
+    .store-category-heading { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; padding-bottom: 10px; border-bottom: 2px solid #dfe3f8; }
+    .store-category-heading h2 { color: #1f1f4e; font-size: 1.35rem; font-weight: 900; margin: 0; }
+    .store-category-heading span { color: #6c7190; font-size: .95rem; font-weight: 750; }
+    .empty-state { text-align: center; padding: 60px 20px; background: #fff; border-radius: 8px; border: 1px solid #e2e5f3; }
+    .empty-state-title { color: #1f1f4e; font-weight: 900; margin-bottom: 8px; }
+    .empty-state-text { color: #6c7190; margin: 0; }
 </style>
 @endsection
 
 @section('content')
+<main class="stores-page">
+    <div class="stores-shell">
+        <h1 class="page-title">Nuestras tiendas</h1>
+        <p class="page-subtitle">Descubre todas las tiendas y servicios disponibles en el mall.</p>
+        <div class="stores-total">{{ $tiendas->count() }} tiendas registradas</div>
 
-<div class="page-header">
-    <div class="container-fluid px-3 px-md-4">
-        <h1><i class="bi bi-shop"></i> Ver Tiendas</h1>
-        <p>Descubre todas las tiendas del mall agrupadas por categorías</p>
-    </div>
-</div>
-
-<main class="container-fluid px-3 px-md-4">
-
-    <!-- Estadísticas -->
-    <div class="stats-bar">
-        <div class="stat-item">
-            <div class="stat-item-number">{{ $totalStores }}</div>
-            <div class="stat-item-label">Tiendas Totales</div>
-        </div>
-        <div class="stat-item">
-            <div class="stat-item-number">{{ $totalCategories }}</div>
-            <div class="stat-item-label">Categorías</div>
-        </div>
-    </div>
-
-    @if(count($storesByCategory) > 0)
-        @foreach($storesByCategory as $categoryId => $data)
-            <section class="category-section">
-                <div class="category-header">
-                    @if($data['category']->image)
-                        <img src="{{ $data['category']->image }}" alt="{{ $data['category']->name }}">
-                    @else
-                        <div style="width: 80px; height: 80px; border-radius: 12px; background: #e0e0e0; display: flex; align-items: center; justify-content: center; color: #999;">
-                            <i class="bi bi-image" style="font-size: 2rem;"></i>
-                        </div>
-                    @endif
-                    <div class="category-info">
-                        <h3>{{ $data['category']->name }}</h3>
-                        <p><i class="bi bi-shop"></i> {{ $data['store_count'] }} tiendas • <i class="bi bi-bag"></i> {{ $data['product_count'] }} productos</p>
+        @if($storesByCategory->count() > 0)
+            @foreach($storesByCategory as $categoryName => $stores)
+                <section class="store-category-section">
+                    <div class="store-category-heading">
+                        <h2>{{ $categoryName }}</h2>
+                        <span>{{ $stores->count() }} tiendas</span>
                     </div>
-                </div>
-
-                <div class="stores-grid">
-                    @foreach($data['stores'] as $store)
-                        <a href="{{ route('stores.show', ['store' => urlencode($store)]) }}" style="text-decoration: none; color: inherit;">
-                            <div class="store-card">
-                                <div class="store-card-icon">
-                                    <i class="bi bi-shop"></i>
-                                </div>
-                                <h4>{{ $store }}</h4>
-                                <div class="store-card-info">
-                                    <div class="store-card-stat">
-                                        <i class="bi bi-tag"></i>
-                                        <strong>{{ App\Models\Product::where('tienda', $store)->where('categoria_id', $categoryId)->count() }}</strong> productos
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                    @endforeach
-                </div>
-            </section>
-        @endforeach
-    @else
-        <div class="empty-state">
-            <div class="empty-state-icon">
-                <i class="bi bi-inbox"></i>
+                    <x-store-grid :stores="$stores" />
+                </section>
+            @endforeach
+        @else
+            <div class="empty-state">
+                <h2 class="empty-state-title">Sin tiendas disponibles</h2>
+                <p class="empty-state-text">No hay tiendas disponibles en este momento.</p>
             </div>
-            <h3 style="color: #1f1f4e; margin-bottom: 8px;">No hay tiendas disponibles</h3>
-            <p>Intenta más tarde o explora nuestras categorías</p>
-        </div>
-    @endif
-
+        @endif
+    </div>
 </main>
-
 @endsection
