@@ -1,21 +1,44 @@
-version: '3.8'
-
 services:
   app:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: laravel_app
     volumes:
       - .:/var/www
+    working_dir: /var/www
     depends_on:
       - db
+    networks:
+      - appnet
+
+  webserver:
+    image: nginx:alpine
+    ports:
+      - "8000:80"
+    volumes:
+      - .:/var/www
+      - ./nginx:/etc/nginx/conf.d
+    depends_on:
+      - app
+    networks:
+      - appnet
+
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: mall_gran_via
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 78801636Ab
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql
+    networks:
+      - appnet
 
   python_api:
     build:
       context: ./python_service
-      dockerfile: Dockerfile
-    container_name: mall_python_api
     volumes:
       - ./python_service:/app
     environment:
@@ -24,30 +47,12 @@ services:
       - "8001:8000"
     depends_on:
       - db
+    networks:
+      - appnet
 
-  webserver:
-    image: nginx:alpine
-    container_name: laravel_nginx
-    ports:
-      - "8000:80"
-    volumes:
-      - .:/var/www
-      - ./nginx:/etc/nginx/conf.d
-    depends_on:
-      - app
-
-  db:
-    image: postgres:15
-    container_name: laravel_postgres
-    environment:
-      POSTGRES_DB: mall_gran_via
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 78801636Ab
-    ports:
-      - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-      - ./docker/postgres/init:/docker-entrypoint-initdb.d
+networks:
+  appnet:
+    driver: bridge
 
 volumes:
   pgdata:

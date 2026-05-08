@@ -53,6 +53,14 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
+        $user = User::where('email', $this->email)->first();
+        if ($user && $user->estado === 'inactivo') {
+            RateLimiter::hit($this->throttleKey());
+            throw ValidationException::withMessages([
+                'email' => 'Su cuenta ha sido deshabilitada. Póngase en contacto con el administrador.',
+            ]);
+        }
+
         // Solo intentar login si el usuario está registrado
         if (Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
             RateLimiter::clear($this->throttleKey());

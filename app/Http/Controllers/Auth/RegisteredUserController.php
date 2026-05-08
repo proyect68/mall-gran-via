@@ -64,13 +64,17 @@ class RegisteredUserController extends Controller
 
         // Custom validation to ensure the three name fields are not all equal
         $validateDifferentNames = function ($attribute, $value, $fail) use ($request) {
-            $name = strtolower(trim($request->input('name')));
-            $apellido_paterno = strtolower(trim($request->input('apellido_paterno')));
-            $apellido_materno = strtolower(trim($request->input('apellido_materno')));
+            $val = strtolower(trim($value));
+            $others = [];
+            if ($attribute !== 'name') $others['nombre'] = strtolower(trim($request->input('name')));
+            if ($attribute !== 'apellido_paterno') $others['apellido paterno'] = strtolower(trim($request->input('apellido_paterno')));
+            if ($attribute !== 'apellido_materno') $others['apellido materno'] = strtolower(trim($request->input('apellido_materno')));
             
-            if ($name && $apellido_paterno && $apellido_materno) {
-                if ($name === $apellido_paterno && $apellido_paterno === $apellido_materno) {
-                    $fail('El nombre, apellido paterno y apellido materno no pueden ser idénticos.');
+            foreach ($others as $otherName => $otherVal) {
+                if ($val && $val === $otherVal) {
+                    $fieldName = str_replace('_', ' ', $attribute);
+                    if ($fieldName === 'name') $fieldName = 'nombre';
+                    $fail('El ' . $fieldName . ' no puede ser igual al ' . $otherName . '.');
                 }
             }
         };
@@ -80,13 +84,15 @@ class RegisteredUserController extends Controller
                 'required',
                 'string',
                 'max:50',
-                $validateName
+                $validateName,
+                $validateDifferentNames
             ],
             'apellido_paterno' => [
                 'required',
                 'string',
                 'max:50',
-                $validateName
+                $validateName,
+                $validateDifferentNames
             ],
             'apellido_materno' => [
                 'required',

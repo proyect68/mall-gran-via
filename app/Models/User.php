@@ -33,6 +33,7 @@ class User extends Authenticatable
         'rol_id',
         'role',
         'email_verified_at',
+        'estado',
     ];
 
     /**

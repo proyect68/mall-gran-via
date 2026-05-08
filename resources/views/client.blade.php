@@ -362,7 +362,7 @@
                     </div>
                 </div>
                 <div class="row g-4">
-                    @foreach ($offers as $index => $offer)
+                    @foreach ($offers->values() as $index => $offer)
                         <div class="col-12 col-lg-6">
                             <div class="offer-card color-{{ ($index % 4) + 1 }}">
                                 <x-store-link :store="$offer->store" class="store-title">{{ $offer->store }}</x-store-link>

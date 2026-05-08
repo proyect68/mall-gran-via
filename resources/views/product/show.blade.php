@@ -238,15 +238,27 @@
 
 @section('content')
 @php
+    $galleryImages = collect($galleryImages ?? []);
+
     $mainImage = $galleryImages->first();
+
+    if (!$mainImage) {
+        $mainImage = (object)[
+            'url' => asset('images/sinfoto.png'),
+            'alt' => $product->name
+        ];
+    }
+
     $stock = $product->stock_quantity;
     $isAvailable = $stock > 0;
+
     $price = $product->price;
-    if ($price !== null && $price !== '' && !str_contains($price, 'Bs') && is_numeric(str_replace(['.', ','], '', $price))) {
+    if ($price !== null && $price !== '' && !str_contains($price, 'Bs')) {
         $price .= ' Bs';
     }
+
     $oldPrice = $product->old_price;
-    if ($oldPrice !== null && $oldPrice !== '' && !str_contains($oldPrice, 'Bs') && is_numeric(str_replace(['.', ','], '', $oldPrice))) {
+    if ($oldPrice !== null && $oldPrice !== '' && !str_contains($oldPrice, 'Bs')) {
         $oldPrice .= ' Bs';
     }
 @endphp
@@ -256,10 +268,21 @@
         <section class="gallery" aria-label="Imágenes de {{ $product->name }}">
             <div class="gallery-thumbs">
                 @foreach ($galleryImages as $index => $image)
-                    <button type="button" class="gallery-thumb {{ $index === 0 ? 'active' : '' }}" data-image="{{ $image->url }}" data-title="{{ $image->title }}">
-                        <img src="{{ $image->url }}" alt="{{ $image->alt }}">
-                    </button>
-                @endforeach
+
+    @php
+        $imgUrl = is_object($image) ? $image->url : $image;
+        $imgTitle = is_object($image) ? $image->title : $product->name;
+    @endphp
+
+    <button type="button"
+        class="gallery-thumb {{ $index === 0 ? 'active' : '' }}"
+        data-image="{{ $imgUrl }}"
+        data-title="{{ $imgTitle }}">
+
+        <img src="{{ $imgUrl }}" alt="{{ $imgTitle }}">
+    </button>
+
+@endforeach
             </div>
 
             <div class="main-image-wrap">

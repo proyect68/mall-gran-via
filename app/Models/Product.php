@@ -40,6 +40,7 @@ class Product extends Model
         'store_url',
         'availability_status',
         'stock_quantity',
+        'estado',
     ];
 
     protected $casts = [

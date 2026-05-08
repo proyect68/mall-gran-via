@@ -14,6 +14,14 @@
             <li><a href="{{ route('wishlist.index') }}" class="d-block py-2" style="color: #3735af; text-decoration: none;"><img src="{{ asset('images/listadeseos_logo.png') }}" alt="" width="20" class="me-2" style="display: inline-block;">Lista de deseos</a></li>
             <li><a href="{{ route('history.index') }}" class="d-block py-2" style="color: #3735af; text-decoration: none;"><img src="{{ asset('images/historial_logo.png') }}" alt="" width="20" class="me-2" style="display: inline-block;">Historial</a></li>
             <li><a href="{{ route('notifications.index') }}" class="d-block py-2" style="color: #3735af; text-decoration: none;"><img src="{{ asset('images/notificacion_logo.png') }}" alt="" width="20" class="me-2" style="display: inline-block;">Notificaciones</a></li>
+            
+            @if(auth()->check() && auth()->user()->role === 'administrador')
+                <li class="mt-3 border-top pt-2" style="border-color: rgba(55,53,175,0.2) !important;">
+                    <a href="{{ route('admin.dashboard') }}" class="d-block py-2" style="color: #3735af; text-decoration: none; font-weight: 700;">
+                        <i class="fas fa-shield-alt" style="width: 20px; text-align: center; margin-right: 8px;"></i> Panel de Administración
+                    </a>
+                </li>
+            @endif
         </ul>
     </div>
 </div>
