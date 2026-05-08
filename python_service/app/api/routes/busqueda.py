@@ -28,3 +28,19 @@ def buscar(
         store_filter=tienda,
         offer_only=solo_ofertas,
     )
+
+
+@router.get("/admin-search")
+def buscar_admin(
+    category: str,
+    q: str = "",
+    db: Session = Depends(get_db)
+):
+    servicio = SearchService(db)
+    return servicio.search_admin(category, q)
+
+
+@router.get("/sync")
+def sincronizar_elastic(db: Session = Depends(get_db)):
+    servicio = SearchService(db)
+    return servicio.sync_elasticsearch()

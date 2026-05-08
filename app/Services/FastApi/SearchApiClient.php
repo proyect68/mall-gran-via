@@ -27,6 +27,22 @@ class SearchApiClient
         return $response->json();
     }
 
+    public function adminSearch(string $category, string $query): array
+    {
+        $response = Http::timeout(config('services.fastapi.timeout', 3))
+            ->acceptJson()
+            ->get(rtrim(config('services.fastapi.base_url'), '/').'/api/v1/busqueda/admin-search', [
+                'category' => $category,
+                'q' => $query,
+            ]);
+
+        if (! $response->successful()) {
+            throw new RuntimeException('Error en la búsqueda administrativa de FastAPI.');
+        }
+
+        return $response->json();
+    }
+
     private function toBoolean(mixed $value): bool
     {
         return $value === true || $value === '1' || $value === 1 || $value === 'on';

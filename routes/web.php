@@ -64,6 +64,7 @@ Route::get('/product/{id}', [ProductController::class, 'show'])
 // Admin Routes
 Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/search', [\App\Http\Controllers\Admin\AdminSearchController::class, 'search'])->name('search');
     
     // Users
     Route::get('/users', [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('users.index');

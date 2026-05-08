@@ -47,23 +47,6 @@ class Product extends Model
         'es_servicio' => 'boolean',
     ];
 
-    protected $appends = [
-        'name',
-        'description',
-        'store',
-        'price',
-        'old_price',
-        'offer',
-        'image',
-        'expires',
-        'is_service',
-        'category_id',
-        'detail_url',
-        'store_url',
-        'availability_status',
-        'stock_quantity',
-    ];
-
     public function categoria()
     {
         return $this->belongsTo(Category::class, 'categoria_id');

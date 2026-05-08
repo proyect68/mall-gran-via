@@ -93,9 +93,15 @@
 @endsection
 
 @section('content')
-    <div class="welcome-banner">
-        <h2><i class="bi bi-shield-check me-2"></i>Bienvenido, {{ Auth::user()->name }}</h2>
-        <p>Gestiona usuarios, productos y tiendas del Mall Gran Vía desde este panel.</p>
+    <div class="welcome-banner" style="position: relative; overflow: hidden;">
+        <div style="position: relative; z-index: 2;">
+            <p style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; opacity: 0.7;">Panel de Control</p>
+            <h2 style="font-size: 2rem;">¡Hola de nuevo, {{ Auth::user()->name }}! 👋</h2>
+            <p style="font-size: 1rem; opacity: 0.9; max-width: 600px;">Hoy es un gran día para gestionar el Mall Gran Vía. Aquí tienes un resumen rápido de lo que está sucediendo.</p>
+        </div>
+        <div style="position: absolute; right: -20px; top: -20px; font-size: 8rem; opacity: 0.1; transform: rotate(-15deg);">
+            <i class="bi bi-shield-check"></i>
+        </div>
     </div>
 
     <div class="stats-grid">

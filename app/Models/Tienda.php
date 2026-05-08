@@ -33,10 +33,7 @@ class Tienda extends Model
         'tiktok',
     ];
 
-    public function getKeyName()
-    {
-        return Schema::hasColumn($this->getTable(), 'id_tienda') ? 'id_tienda' : 'id';
-    }
+    protected $primaryKey = 'id_tienda';
 
     public function productos()
     {
