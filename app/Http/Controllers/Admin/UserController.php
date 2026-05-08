@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Rol;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -18,7 +19,8 @@ class UserController extends Controller
 
     public function create()
     {
-        return view('admin.users.create');
+        $roles = Rol::orderBy('id')->get();
+        return view('admin.users.create', compact('roles'));
     }
 
     public function store(Request $request)
@@ -43,7 +45,7 @@ class UserController extends Controller
                 }
             ],
             'password' => ['required', 'string', 'min:8'],
-            'role' => ['required', 'string', 'in:cliente,comerciante,administrador'],
+            'role' => ['required', 'string', Rule::in(Rol::pluck('nombre')->toArray())],
         ]);
 
         User::create([
@@ -61,7 +63,8 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
-        return view('admin.users.edit', compact('user'));
+        $roles = Rol::orderBy('id')->get();
+        return view('admin.users.edit', compact('user', 'roles'));
     }
 
     public function update(Request $request, User $user)
@@ -77,7 +80,7 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:50', $validateName],
             'apellido_paterno' => ['required', 'string', 'max:50', $validateName],
             'apellido_materno' => ['required', 'string', 'max:50', $validateName],
-            'role' => ['required', 'string', 'in:cliente,comerciante,administrador'],
+            'role' => ['required', 'string', Rule::in(Rol::pluck('nombre')->toArray())],
         ]);
 
         $user->update([

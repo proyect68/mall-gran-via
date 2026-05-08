@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
-@section('title', 'Editar Usuario - Admin')
-@section('page-title', 'Editar Usuario')
+@section('title', 'Crear Usuario - Admin')
+@section('page-title', 'Crear Nuevo Usuario')
 
 @section('styles')
 <style>
@@ -37,18 +37,6 @@
         outline: none;
         border-color: #3735af;
         box-shadow: 0 0 0 3px rgba(55, 53, 175, 0.12);
-    }
-
-    .form-control-readonly {
-        width: 100%;
-        padding: 12px 16px;
-        border-radius: 10px;
-        border: 1px solid #e8e8ee;
-        margin-bottom: 4px;
-        background: #eeeef5;
-        color: #888;
-        font-size: 0.92rem;
-        cursor: not-allowed;
     }
 
     .btn-save {
@@ -97,49 +85,6 @@
         margin-bottom: 20px;
     }
 
-    .field-hint {
-        color: #8c8ea0;
-        font-size: 0.78rem;
-        margin-top: 4px;
-        display: block;
-    }
-
-    .user-info-banner {
-        background: #f4f4fb;
-        border-radius: 12px;
-        padding: 16px 20px;
-        margin-bottom: 24px;
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        border: 1px solid #eef0f5;
-    }
-
-    .user-info-avatar {
-        width: 48px;
-        height: 48px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #fff;
-        font-weight: 700;
-        font-size: 1.1rem;
-        flex-shrink: 0;
-    }
-
-    .user-info-details strong {
-        display: block;
-        color: #1e1e3f;
-        font-size: 1rem;
-    }
-
-    .user-info-details span {
-        font-size: 0.82rem;
-        color: #8c8ea0;
-    }
-
     .breadcrumb-nav {
         margin-bottom: 24px;
     }
@@ -163,48 +108,49 @@
     </div>
 
     <div class="form-card">
-        <div class="user-info-banner">
-            <div class="user-info-avatar">
-                {{ strtoupper(substr($user->name, 0, 1)) }}
-            </div>
-            <div class="user-info-details">
-                <strong>{{ $user->name }} {{ $user->apellido_paterno }} {{ $user->apellido_materno }}</strong>
-                <span>{{ $user->email }} · ID #{{ $user->id }}</span>
-            </div>
-        </div>
-
-        <form action="{{ route('admin.users.update', $user) }}" method="POST">
+        <form action="{{ route('admin.users.store') }}" method="POST">
             @csrf
-            @method('PUT')
 
             <div class="row">
                 <div class="col-md-4">
                     <div class="field-group">
                         <label class="form-label-custom">Nombre *</label>
-                        <input type="text" name="name" class="form-control-custom" value="{{ old('name', $user->name) }}" required>
+                        <input type="text" name="name" class="form-control-custom" value="{{ old('name') }}" required placeholder="Ej: Juan">
                         @error('name') <span class="field-error">{{ $message }}</span> @enderror
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="field-group">
                         <label class="form-label-custom">Apellido Paterno *</label>
-                        <input type="text" name="apellido_paterno" class="form-control-custom" value="{{ old('apellido_paterno', $user->apellido_paterno) }}" required>
+                        <input type="text" name="apellido_paterno" class="form-control-custom" value="{{ old('apellido_paterno') }}" required placeholder="Ej: Pérez">
                         @error('apellido_paterno') <span class="field-error">{{ $message }}</span> @enderror
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="field-group">
                         <label class="form-label-custom">Apellido Materno *</label>
-                        <input type="text" name="apellido_materno" class="form-control-custom" value="{{ old('apellido_materno', $user->apellido_materno) }}" required>
+                        <input type="text" name="apellido_materno" class="form-control-custom" value="{{ old('apellido_materno') }}" required placeholder="Ej: García">
                         @error('apellido_materno') <span class="field-error">{{ $message }}</span> @enderror
                     </div>
                 </div>
             </div>
 
-            <div class="field-group">
-                <label class="form-label-custom">Correo Electrónico</label>
-                <input type="email" class="form-control-readonly" value="{{ $user->email }}" readonly>
-                <span class="field-hint">El correo electrónico no se puede modificar por seguridad.</span>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="field-group">
+                        <label class="form-label-custom">Correo Electrónico *</label>
+                        <input type="email" name="email" class="form-control-custom" value="{{ old('email') }}" required placeholder="usuario@gmail.com">
+                        <small style="color: #8c8ea0; font-size: 0.78rem;">Solo se permiten cuentas de Gmail.</small>
+                        @error('email') <span class="field-error">{{ $message }}</span> @enderror
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="field-group">
+                        <label class="form-label-custom">Contraseña *</label>
+                        <input type="password" name="password" class="form-control-custom" required placeholder="Mínimo 8 caracteres">
+                        @error('password') <span class="field-error">{{ $message }}</span> @enderror
+                    </div>
+                </div>
             </div>
 
             <div class="row">
@@ -212,8 +158,9 @@
                     <div class="field-group">
                         <label class="form-label-custom">Rol del Usuario *</label>
                         <select name="role" class="form-control-custom" required>
+                            <option value="">-- Seleccionar rol --</option>
                             @foreach($roles as $rol)
-                                <option value="{{ $rol->nombre }}" {{ (old('role', $user->role) === $rol->nombre) ? 'selected' : '' }}>
+                                <option value="{{ $rol->nombre }}" {{ old('role') === $rol->nombre ? 'selected' : '' }}>
                                     {{ ucfirst($rol->nombre) }}
                                 </option>
                             @endforeach
@@ -225,7 +172,7 @@
 
             <div class="d-flex gap-3 mt-3">
                 <button type="submit" class="btn-save">
-                    <i class="bi bi-check-lg me-1"></i> Guardar Cambios
+                    <i class="bi bi-check-lg me-1"></i> Crear Usuario
                 </button>
                 <a href="{{ route('admin.users.index') }}" class="btn-cancel">Cancelar</a>
             </div>

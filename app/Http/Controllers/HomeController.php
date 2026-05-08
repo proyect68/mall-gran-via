@@ -11,8 +11,13 @@ class HomeController extends Controller
      */
     public function index()
     {
-        // Si está autenticado, mostrar pantalla de cliente
         if (Auth::check()) {
+            // Si es administrador, redirigir al panel admin
+            if (Auth::user()->role === 'administrador') {
+                return redirect()->route('admin.dashboard');
+            }
+
+            // Si es cliente u otro rol, mostrar pantalla de cliente
             return redirect()->route('dashboard');
         }
 

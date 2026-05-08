@@ -16,6 +16,7 @@ class ProductController extends Controller
 
     public function edit(Product $product)
     {
+        $product->load('categoria');
         return view('admin.products.edit', compact('product'));
     }
 
